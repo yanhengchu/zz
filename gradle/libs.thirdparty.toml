@@ -1,0 +1,7 @@
+[versions]
+mmkv = "2.2.4"
+toaster = "13.8"
+
+[libraries]
+mmkv = { group = "com.tencent", name = "mmkv", version.ref = "mmkv" }
+toaster = { group = "com.github.getActivity", name = "Toaster", version.ref = "toaster" }

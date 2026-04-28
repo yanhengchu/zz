@@ -1,0 +1,13 @@
+id,priority,log,timeout,pkg,keywords,action_type,value_policy,action_target,else_target
+
+live_ad_open_12,,,,,,,,0.50:0.61,
+live_ad_open_3,,,,,,,,0.50:0.58,
+live_ad_next,,,,,,,,0.50:0.56,0.50:0.62
+
+live_tree_list_ad,,,,,,,,0.87:0.61,
+live_tree_list_search,,,,,,,,0.87:0.88,
+
+live_ad_video,,,,,,,,0.50:0.79,
+
+
+aweme_ad_next,,,,,,,,0.50:0.54,0.50:0.60
