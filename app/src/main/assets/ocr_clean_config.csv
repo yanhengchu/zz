@@ -1,0 +1,6 @@
+type,value
+remove_ascii_punctuation,1
+remove_ascii_letters,1
+remove_chars,"，。、；！？·（）"
+drop_line_prefix,"ocr:"
+drop_line_exact,"反馈"

@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">AZ</string>
+    <string name="accessibility_service_description">自动化手势服务</string>
+</resources>
