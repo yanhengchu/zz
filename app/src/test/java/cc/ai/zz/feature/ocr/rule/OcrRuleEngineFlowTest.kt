@@ -1,6 +1,7 @@
 package cc.ai.zz.feature.ocr.rule
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class OcrRuleEngineFlowTest {
@@ -177,6 +178,45 @@ class OcrRuleEngineFlowTest {
         )
 
         assertEquals("ad_next/else", result.status)
+    }
+
+    @Test
+    fun handleRecognizedTextWithRules_logsStructuredNumericDebugContextWhenExtractionIsMissing() {
+        val matcher = OcrRuleMatcher()
+        val timeoutGate = OcrRuleTimeoutGate()
+        val actionCooldownGate = OcrActionCooldownGate()
+        val dynamicValueGate = OcrDynamicValueGate()
+        val logs = mutableListOf<String>()
+        val rules = listOf(
+            OcrActionRule(
+                id = "live_ad_next",
+                priority = 0,
+                keywords = listOf("再看一个视频继续领奖励", "继续领奖励", "坚持退出"),
+                action = OcrRuleAction.Click(OcrClickTarget(0.5f, 0.5f)),
+                valuePolicy = OcrValuePolicy.NumericThreshold(NumericCompareOperator.GT, 300),
+                log = true
+            )
+        )
+
+        handleRecognizedTextWithRules(
+            rules = rules,
+            packageName = "",
+            text = "再看一个视频继续领奖励 继续领奖励 坚持退出",
+            rawTextForDebug = "raw 再看一个视频继续领奖励",
+            matcher = matcher,
+            timeoutGate = timeoutGate,
+            actionCooldownGate = actionCooldownGate,
+            dynamicValueGate = dynamicValueGate,
+            executeRule = { _, _ -> true },
+            logClickDecision = { _, _, _ -> },
+            onLog = logs::add
+        )
+
+        assertTrue(logs.any { it.contains("ocr numeric debug rule=live_ad_next") })
+        assertTrue(logs.any { it.contains("ocr_raw_text=raw 再看一个视频继续领奖励") })
+        assertTrue(logs.any { it.contains("ocr_clean_text=再看一个视频继续领奖励 继续领奖励 坚持退出") })
+        assertTrue(logs.any { it.contains("ocr_match_text=") })
+        assertTrue(logs.any { it.contains("rule_match_keywords=") })
     }
 
     @Test

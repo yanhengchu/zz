@@ -43,7 +43,11 @@ class OcrRuleEngine(
         actionCooldownGate.reset()
     }
 
-    fun handleRecognizedText(packageName: String, text: String): OcrRuleHandleResult {
+    fun handleRecognizedText(
+        packageName: String,
+        text: String,
+        rawTextForDebug: String = text
+    ): OcrRuleHandleResult {
         if (rules.isEmpty()) {
             reloadRules()
         }
@@ -51,6 +55,7 @@ class OcrRuleEngine(
             rules = rules,
             packageName = packageName,
             text = text,
+            rawTextForDebug = rawTextForDebug,
             matcher = matcher,
             timeoutGate = timeoutGate,
             actionCooldownGate = actionCooldownGate,
@@ -68,6 +73,7 @@ internal fun handleRecognizedTextWithRules(
     rules: List<OcrActionRule>,
     packageName: String,
     text: String,
+    rawTextForDebug: String = text,
     matcher: OcrRuleMatcher,
     timeoutGate: OcrRuleTimeoutGate,
     actionCooldownGate: OcrActionCooldownGate,
@@ -94,6 +100,22 @@ internal fun handleRecognizedTextWithRules(
         onLog("matched OCR rule id=${rule.id} pkg=$packageName")
         if (rule.valuePolicy != null && match.dynamicValue == null) {
             onLog("dynamic comparison fallback to ordinary execution rule=${rule.id}")
+            if (rule.log && rule.valuePolicy is OcrValuePolicy.NumericThreshold) {
+                onLog(
+                    buildString {
+                        append("ocr numeric debug rule=")
+                        append(rule.id)
+                        append("\nocr_raw_text=")
+                        append(rawTextForDebug)
+                        append("\nocr_clean_text=")
+                        append(text)
+                        append("\nocr_match_text=")
+                        append(matcher.debugNormalizedText(text))
+                        append("\nrule_match_keywords=")
+                        append(matcher.debugRuleKeywords(rule).joinToString(" | "))
+                    }
+                )
+            }
         }
         val decision = dynamicValueGate.evaluate(match)
         logClickDecision(rule, match, decision)

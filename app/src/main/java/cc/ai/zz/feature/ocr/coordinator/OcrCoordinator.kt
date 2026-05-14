@@ -98,14 +98,19 @@ class OcrCoordinator(
                 bitmap = screenCaptureProvider.capture()
                 ensureSessionActive(currentSessionId)
                 ocrBitmap = cropStatusBar(bitmap)
-                val text = ocrRuleEngine.normalizeRecognizedText(localOcrProvider.recognize(ocrBitmap))
+                val rawRecognizedText = localOcrProvider.recognize(ocrBitmap)
+                val text = ocrRuleEngine.normalizeRecognizedText(rawRecognizedText)
                 val logText = formatForLog(text)
                 ensureSessionActive(currentSessionId)
                 roundStatus = if (text.isBlank()) {
                     "none"
                 } else {
                     ensureSessionActive(currentSessionId)
-                    ocrRuleEngine.handleRecognizedText(packageName, text).also { result ->
+                    ocrRuleEngine.handleRecognizedText(
+                        packageName = packageName,
+                        text = text,
+                        rawTextForDebug = rawRecognizedText
+                    ).also { result ->
                         if (result.shouldLogText) {
                             Log.d(TAG, "ocr result session=$currentSessionId pkg=$packageName text=$logText")
                         }

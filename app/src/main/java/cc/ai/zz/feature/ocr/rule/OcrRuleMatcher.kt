@@ -9,10 +9,10 @@ class OcrRuleMatcher(
         private const val MATCH_TIMEOUT_ALL_KEYWORD = "TIMEOUT_ALL"
         private const val TIME_PLACEHOLDER = "mm:ss"
         private const val NUMBER_PLACEHOLDER = "num"
-        private const val MATCH_ALL_KEYWORD_SENTINEL = "占位全匹配"
-        private const val MATCH_TIMEOUT_ALL_KEYWORD_SENTINEL = "占位超时全匹配"
-        private const val TIME_PLACEHOLDER_SENTINEL = "占位时间"
-        private const val NUMBER_PLACEHOLDER_SENTINEL = "占位数字"
+        private const val MATCH_ALL_KEYWORD_SENTINEL = "\uE000"
+        private const val MATCH_TIMEOUT_ALL_KEYWORD_SENTINEL = "\uE001"
+        private const val TIME_PLACEHOLDER_SENTINEL = "\uE002"
+        private const val NUMBER_PLACEHOLDER_SENTINEL = "\uE003"
     }
 
     data class AliasMatch(
@@ -36,6 +36,21 @@ class OcrRuleMatcher(
         return rules.firstNotNullOfOrNull { rule ->
             if (!rule.matchesPackage(packageName)) return@firstNotNullOfOrNull null
             rule.match(matchText, timeoutTriggeredRuleIds)
+        }
+    }
+
+    fun debugNormalizedText(text: String): String {
+        val normalizedText = text.trim()
+        if (normalizedText.isEmpty()) return normalizedText
+        return textCleaner.normalizeForMatch(normalizedText, confusionMap)
+    }
+
+    fun debugRuleKeywords(rule: OcrActionRule): List<String> {
+        return rule.keywords.map { keyword ->
+            keyword.splitAliases().joinToString(" / ") { rawAlias ->
+                val normalizedAlias = rawAlias.normalizeAliasForMatch()
+                "$rawAlias => $normalizedAlias"
+            }
         }
     }
 

@@ -34,6 +34,19 @@ class OcrRuleMatcherTest {
             )
         )
     )
+    private val matcherWithXuDuConfusions = OcrRuleMatcher(
+        mapOf(
+            '续' to '读',
+            '读' to '读'
+        )
+    )
+    private val matcherWithPlaceholderBreakingConfusions = OcrRuleMatcher(
+        mapOf(
+            '续' to '读',
+            '读' to '读',
+            '占' to '点'
+        )
+    )
 
     @Test
     fun findFirstMatch_returnsHighestPriorityMatchedRule() {
@@ -291,6 +304,39 @@ class OcrRuleMatcherTest {
 
         assertEquals("ad_next", matchedRule?.rule?.id)
         assertEquals("198", matchedRule?.dynamicValue)
+    }
+
+    @Test
+    fun findFirstMatch_extractsNumberWhenContinueNormalizesToJidu() {
+        val rule = createRule(
+            id = "live_ad_next",
+            priority = 10,
+            keywords = listOf("num再看一个视频继续领奖励")
+        )
+
+        val matchedRule = matcherWithXuDuConfusions.findFirstMatch(
+            rules = listOf(rule),
+            text = "158再看一个视频继读领奖励"
+        )
+
+        assertEquals("live_ad_next", matchedRule?.rule?.id)
+        assertEquals("158", matchedRule?.dynamicValue)
+    }
+
+    @Test
+    fun debugRuleKeywords_keepsNumberPlaceholderWhenConfusionMapTouchesOtherChineseChars() {
+        val rule = createRule(
+            id = "live_ad_next",
+            priority = 10,
+            keywords = listOf("num再看一个视频继续领奖励")
+        )
+
+        val normalizedKeywords = matcherWithPlaceholderBreakingConfusions.debugRuleKeywords(rule)
+
+        assertEquals(
+            listOf("num再看一个视频继续领奖励 => num再看一个视频继读领奖励"),
+            normalizedKeywords
+        )
     }
 
     @Test
