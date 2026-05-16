@@ -33,5 +33,11 @@ class GestureEvent(
 
         /** 开启 OCR；授权结果通过 Intent extras 附带。 */
         const val ACT_START_OCR = "ACT_START_OCR"
+
+        /** 切换连点任务 on/off。 */
+        const val ACT_TOGGLE_CONTINUOUS_CLICK = "ACT_TOGGLE_CONTINUOUS_CLICK"
+
+        /** 停止连点任务。 */
+        const val ACT_STOP_CONTINUOUS_CLICK = "ACT_STOP_CONTINUOUS_CLICK"
     }
 }

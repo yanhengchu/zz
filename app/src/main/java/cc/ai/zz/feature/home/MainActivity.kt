@@ -13,6 +13,7 @@ import cc.ai.zz.feature.automation.command.GestureEvent
 import cc.ai.zz.feature.automation.command.emit
 import cc.ai.zz.feature.automation.executor.GestureAccessibilityService
 import cc.ai.zz.feature.automation.service.GestureService
+import cc.ai.zz.feature.overlay.manager.ContinuousClickFloatingWindowManager
 import cc.ai.zz.feature.overlay.manager.CoordinateLocatorFloatingWindowManager
 import cc.ai.zz.feature.overlay.manager.FloatingWindowManager
 import cc.ai.zz.feature.ocr.rule.OcrRuleRepository
@@ -55,12 +56,13 @@ class MainActivity : ComponentActivity() {
         setIntent(intent)
         syncPageState()
         syncCoordinateLocatorButton()
+        syncContinuousClickButton()
         syncHomeInfo()
     }
 
     private fun syncPageState() {
         // 当前设计里，“打开操作页”本身就是显式停止入口：
-        // 用户回到操作页意味着准备重新配置或重新发起任务，因此这里会主动停止已有周期任务。
+        // 用户回到操作页意味着准备重新配置或重新发起任务，因此这里会主动停止已有运行中任务。
         // 现阶段项目没有单独的停止按钮，停止方式统一收敛在这个入口上。
         if (GestureService.hasRunningWork()) {
             GestureEvent.ACT_STOP.emit()
@@ -103,6 +105,16 @@ class MainActivity : ComponentActivity() {
             }
             requestProjectionThenStartOcr()
         }
+        findViewById<android.widget.Button>(R.id.btnToggleContinuousClick).setOnClickListener {
+            if (!ensureAccessibilityReady()) return@setOnClickListener
+            if (!ensureOverlayPermissionForFixedTask()) return@setOnClickListener
+            if (ContinuousClickFloatingWindowManager.isShowing()) {
+                ContinuousClickFloatingWindowManager.tryHide()
+            } else {
+                ContinuousClickFloatingWindowManager.tryShow()
+            }
+            syncContinuousClickButton()
+        }
         findViewById<android.widget.Button>(R.id.btnToggleCoordinateLocator).setOnClickListener {
             if (!ensureOverlayPermissionForFixedTask()) return@setOnClickListener
             if (CoordinateLocatorFloatingWindowManager.isShowing()) {
@@ -113,6 +125,7 @@ class MainActivity : ComponentActivity() {
             syncCoordinateLocatorButton()
         }
         syncCoordinateLocatorButton()
+        syncContinuousClickButton()
     }
 
     private fun requestProjectionThenStartOcr() {
@@ -123,6 +136,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         syncCoordinateLocatorButton()
+        syncContinuousClickButton()
         syncHomeInfo()
     }
 
@@ -132,6 +146,15 @@ class MainActivity : ComponentActivity() {
             "隐藏坐标定位"
         } else {
             "定位屏幕坐标"
+        }
+    }
+
+    private fun syncContinuousClickButton() {
+        val button = findViewById<android.widget.Button>(R.id.btnToggleContinuousClick)
+        button.text = if (ContinuousClickFloatingWindowManager.isShowing()) {
+            "隐藏连点"
+        } else {
+            "连点"
         }
     }
 

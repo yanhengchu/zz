@@ -135,9 +135,53 @@ metadata:
   浮窗内会实时显示当前中心点的 x、y 屏幕比例坐标。
   显示的比例坐标可直接用于 OCR `CLICK` 规则配置。
 
-## 4. OCR
+## 4. 连点
 
-### 4.1 启动 OCR
+当前连点能力保留，但主页入口暂隐藏；以下项仅在恢复入口后执行。
+
+### 4.1 显示连点悬浮按钮
+
+- 前置条件：
+  已授予悬浮窗权限，无障碍服务已开启。
+- 操作：
+  在操作页点击“连点”。
+- 预期结果：
+  屏幕显示独立连点悬浮按钮。
+  按钮默认显示 `off`。
+  操作页按钮文案切换为“隐藏连点”。
+
+### 4.2 开启和关闭连点
+
+- 前置条件：
+  连点悬浮按钮已显示。
+- 操作：
+  点击连点悬浮按钮，再点击一次。
+- 预期结果：
+  第一次点击后悬浮按钮显示 `on`，开始按约 50 ms 间隔执行点击。
+  第二次点击后悬浮按钮显示 `off`，连点停止。
+
+### 4.3 连点位置跟随悬浮按钮
+
+- 前置条件：
+  连点悬浮按钮已显示。
+- 操作：
+  拖动连点悬浮按钮到目标区域附近，开启连点。
+- 预期结果：
+  点击位置按连点悬浮按钮位置推导，和原点击任务的悬浮窗锚点语义一致。
+
+### 4.4 回到操作页停止连点
+
+- 前置条件：
+  连点已开启。
+- 操作：
+  重新打开应用，进入操作页。
+- 预期结果：
+  连点停止。
+  连点悬浮按钮显示 `off`。
+
+## 5. OCR
+
+### 5.1 启动 OCR
 
 - 前置条件：
   无障碍服务已开启。
@@ -149,7 +193,7 @@ metadata:
   会出现简洁的 OCR 状态浮窗。
   OCR 结果会写入日志。
 
-### 4.2 OCR 轮询与日志输出
+### 5.2 OCR 轮询与日志输出
 
 - 前置条件：
   OCR 已启动。
@@ -162,7 +206,7 @@ metadata:
   状态浮窗会显示最近一次最终状态，例如 `ocr: none`、`ocr: ad_back` 或错误码。
   OCR 模式运行期间主悬浮窗保持不显示。
 
-### 4.3 OCR 重复开启
+### 5.3 OCR 重复开启
 
 - 前置条件：
   OCR 已在运行。
@@ -171,7 +215,7 @@ metadata:
 - 预期结果：
   不重复启动 OCR，并给出 “OCR 已开启” 提示。
 
-### 4.4 OCR 停止后立即重启
+### 5.4 OCR 停止后立即重启
 
 - 前置条件：
   OCR 已启动。
@@ -181,7 +225,7 @@ metadata:
   停止后旧一轮 OCR 不再继续输出新日志。
   重新开启后，只继续输出新一轮 OCR 的结果日志。
 
-### 4.5 OCR 规则命中后返回
+### 5.5 OCR 规则命中后返回
 
 - 前置条件：
   已按 [OCR_RULES.md](/Users/aschu/IdeaProjects/zz/OCR_RULES.md) 配置一条会触发 `BACK` 的规则（默认规则通常维护在 [ocr_rules_default.csv](/Users/aschu/IdeaProjects/zz/app/src/main/assets/ocr_rules_default.csv)，分辨率文件只覆盖差异字段），且当前页面可稳定命中对应关键词。
@@ -191,7 +235,7 @@ metadata:
   日志中能看到 OCR 结果。
   命中规则后会执行一次返回操作。
 
-### 4.6 OCR 规则命中后比例点击
+### 5.6 OCR 规则命中后比例点击
 
 - 前置条件：
   已按 [OCR_RULES.md](/Users/aschu/IdeaProjects/zz/OCR_RULES.md) 配置一条会触发 `CLICK` 的规则（默认规则通常维护在 [ocr_rules_default.csv](/Users/aschu/IdeaProjects/zz/app/src/main/assets/ocr_rules_default.csv)，分辨率文件只覆盖差异字段），且当前页面可稳定命中对应关键词。
@@ -201,7 +245,7 @@ metadata:
   日志中能看到 OCR 结果。
   命中规则后会按配置的屏幕比例位置执行点击。
 
-### 4.7 OCR 规则命中后上滑
+### 5.7 OCR 规则命中后上滑
 
 - 前置条件：
   已按 [OCR_RULES.md](/Users/aschu/IdeaProjects/zz/OCR_RULES.md) 配置一条会触发 `SWIPE` 的规则（默认规则通常维护在 [ocr_rules_default.csv](/Users/aschu/IdeaProjects/zz/app/src/main/assets/ocr_rules_default.csv)，分辨率文件只覆盖差异字段），且当前页面可稳定命中对应关键词。
@@ -211,7 +255,7 @@ metadata:
   日志中能看到 OCR 结果。
   命中规则后会执行一次上滑操作。
 
-### 4.8 OCR 动态时间值变化后执行动作
+### 5.8 OCR 动态时间值变化后执行动作
 
 - 前置条件：
   已按 [OCR_RULES.md](/Users/aschu/IdeaProjects/zz/OCR_RULES.md) 配置带 `value_policy=UNCHANGED` 的 `mm:ss` 规则（默认规则通常维护在 [ocr_rules_default.csv](/Users/aschu/IdeaProjects/zz/app/src/main/assets/ocr_rules_default.csv)，分辨率文件只覆盖差异字段），且页面上存在可识别的 `倒计时mm:ss` 或 `倒计吋mm:ss` 文案。
@@ -222,7 +266,7 @@ metadata:
   如果后续识别到的时间值和上一轮不同，则跳过本轮动作执行。
   如果后续识别到的时间值和上一轮相同，会执行动作。
 
-### 4.9 OCR 动态数字阈值分支点击
+### 5.9 OCR 动态数字阈值分支点击
 
 - 前置条件：
   已按 [OCR_RULES.md](/Users/aschu/IdeaProjects/zz/OCR_RULES.md) 配置带 `num`、`CLICK`、`action_target`、`else_target`、`value_policy=GT:300` 的规则（默认规则通常维护在 [ocr_rules_default.csv](/Users/aschu/IdeaProjects/zz/app/src/main/assets/ocr_rules_default.csv)，分辨率文件只覆盖差异字段），且页面上存在可识别的金币数字文案。
@@ -232,20 +276,20 @@ metadata:
   当识别到的数字满足 `GT:300` 时，点击 `action_target`。
   当识别到的数字不满足 `GT:300` 时，点击 `else_target`。
 
-## 5. 异常场景
+## 6. 异常场景
 
-### 5.1 运行中关闭无障碍
+### 6.1 运行中关闭无障碍
 
 - 前置条件：
-  周期上滑任务正在运行。
+  周期上滑任务或连点正在运行。
 - 操作：
   手动关闭本应用无障碍服务。
 - 预期结果：
-  当前周期任务停止。
-  主悬浮窗隐藏。
-  会提示“无障碍不可用，已停止当前周期任务”。
+  当前周期任务或连点停止。
+  对应悬浮窗隐藏或切换为停止状态。
+  会提示无障碍不可用。
 
-### 5.2 OCR 授权失效
+### 6.2 OCR 授权失效
 
 - 前置条件：
   OCR 已启动。
@@ -254,7 +298,7 @@ metadata:
 - 预期结果：
   当前 OCR 停止，并提示需要重新授权。
 
-## 6. 结果记录建议
+## 7. 结果记录建议
 
 每次手工回归后，建议至少记录：
 
