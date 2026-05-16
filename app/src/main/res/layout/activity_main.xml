@@ -133,7 +133,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:layout_marginTop="8dp"
-                android:text="固定 30 秒节奏循环上滑，适合低频刷新。"
+                android:text="固定 50 秒节奏循环上滑，适合低频刷新。"
                 android:textColor="@color/subtle_text"
                 android:textSize="13sp"/>
 

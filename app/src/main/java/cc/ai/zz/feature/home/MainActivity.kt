@@ -21,7 +21,7 @@ import com.hjq.toast.Toaster
 class MainActivity : ComponentActivity() {
     companion object {
         private const val SWIPE_UP_FIXED_PERIOD_MS = 3_000L
-        private const val SWIPE_UP_SLOW_FIXED_PERIOD_MS = 30_000L
+        private const val SWIPE_UP_SLOW_FIXED_PERIOD_MS = 50_000L
     }
 
     private val ocrRuleRepository by lazy { OcrRuleRepository(this) }
