@@ -9,7 +9,7 @@ version:
 # global
 # -------------------------------------
 
-PACKAGE_NAME := cc.ai.music
+PACKAGE_NAME := cc.ai.zz
 
 # -------------------------------------
 # adb

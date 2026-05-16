@@ -115,14 +115,14 @@
                 android:textSize="13sp"/>
 
         <Button
-                android:id="@+id/btnStartClick"
+                android:id="@+id/btnStartSlowSwipeUp"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:layout_marginTop="18dp"
                 android:background="@drawable/bg_action_click"
                 android:paddingStart="18dp"
                 android:paddingEnd="18dp"
-                android:text="开始点击"
+                android:text="开始上滑"
                 android:textAllCaps="false"
                 android:textColor="@color/action_text"
                 android:textSize="17sp"
@@ -133,7 +133,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:layout_marginTop="8dp"
-                android:text="点击后停留 35 秒，再返回并进入下一轮。"
+                android:text="固定 30 秒节奏循环上滑，适合低频刷新。"
                 android:textColor="@color/subtle_text"
                 android:textSize="13sp"/>
 

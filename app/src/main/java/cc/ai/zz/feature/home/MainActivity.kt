@@ -21,7 +21,7 @@ import com.hjq.toast.Toaster
 class MainActivity : ComponentActivity() {
     companion object {
         private const val SWIPE_UP_FIXED_PERIOD_MS = 3_000L
-        private const val CLICK_BACK_FIXED_STAY_MS = 35_000L
+        private const val SWIPE_UP_SLOW_FIXED_PERIOD_MS = 30_000L
     }
 
     private val ocrRuleRepository by lazy { OcrRuleRepository(this) }
@@ -89,12 +89,12 @@ class MainActivity : ComponentActivity() {
             if (!ensureOverlayPermissionForFixedTask()) return@setOnClickListener
             GestureEvent.ACT_SWIPE_UP.emit(startTime = SWIPE_UP_FIXED_PERIOD_MS)
         }
-        findViewById<android.widget.Button>(R.id.btnStartClick).setOnClickListener {
+        findViewById<android.widget.Button>(R.id.btnStartSlowSwipeUp).setOnClickListener {
             if (!ensureAccessibilityReady()) return@setOnClickListener
             if (!ensureOverlayPermissionForFixedTask()) return@setOnClickListener
-            // 当前上滑和点击任务都不默认绑定 OCR；
+            // 当前固定节奏上滑任务不默认绑定 OCR；
             // 后续如果某个新场景需要边执行边识别，再在该场景入口上显式补 OCR 绑定逻辑。
-            GestureEvent.ACT_CLICK_BACK.emit(startTime = CLICK_BACK_FIXED_STAY_MS)
+            GestureEvent.ACT_SWIPE_UP.emit(startTime = SWIPE_UP_SLOW_FIXED_PERIOD_MS)
         }
         findViewById<android.widget.Button>(R.id.btnStartOcr).setOnClickListener {
             if (!ensureAccessibilityReady()) return@setOnClickListener
