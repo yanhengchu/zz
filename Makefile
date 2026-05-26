@@ -1,0 +1,112 @@
+# -------------------------------------
+# make
+# -------------------------------------
+
+version:
+	make -version
+
+# -------------------------------------
+# global
+# -------------------------------------
+
+PACKAGE_NAME := cc.ai.zz
+
+# -------------------------------------
+# adb
+# -------------------------------------
+
+devices:
+	adb devices
+top:
+	adb shell dumpsys activity top | grep ACTIVITY || true
+size:
+	adb shell wm size
+layoutOn:
+	adb shell setprop debug.layout true
+	adb shell service call activity 1599295570
+layoutOff:
+	adb shell setprop debug.layout false
+	adb shell service call activity 1599295570
+
+touchOn:
+	adb shell settings put system show_touches 1
+	adb shell settings put system pointer_location 1
+touchOff:
+	adb shell settings put system show_touches 0
+	adb shell settings put system pointer_location 0
+profileOn:
+	adb shell setprop debug.hwui.profile visual_bars
+	adb shell stop
+	adb shell start
+profileOff:
+	adb shell setprop debug.hwui.profile false
+	adb shell stop
+	adb shell start
+
+ps:
+	adb shell ps | grep $(PACKAGE_NAME) || true
+stop:
+	adb shell am force-stop $(PACKAGE_NAME)
+clear:
+	adb shell pm clear $(PACKAGE_NAME)
+log:
+	adb logcat -v time | grep --line-buffered $(PACKAGE_NAME) || true
+
+# -------------------------------------
+# git
+# -------------------------------------
+
+gs:
+	git log -1 --oneline
+	git status
+ga:
+	git add .
+gam: ga
+	git commit --amend --no-edit
+
+greset:
+	git checkout --orphan temp
+	git add -A
+	git commit -m "init reset"
+	git branch -D main
+	git branch -m main
+	git push -f origin main
+
+# -------------------------------------
+# gradlew (跨平台)
+# -------------------------------------
+
+ifeq ($(OS),Windows_NT)
+    GRADLEW = .\gradlew
+else
+    GRADLEW = ./gradlew
+endif
+
+clean:
+	$(GRADLEW) clean
+
+debug:
+	$(GRADLEW) :app:assembleDebug
+
+release:
+	$(GRADLEW) :app:assembleRelease
+
+install-debug:
+	$(GRADLEW) :app:installDebug
+
+install-release:
+	adb install -r app/build/outputs/apk/release/app-release-unsigned.apk
+
+launch:
+	adb shell am start -n $(PACKAGE_NAME)/$(PACKAGE_NAME).feature.home.MainActivity
+
+run: debug install-debug launch
+
+# -------------------------------------
+# emulator
+# -------------------------------------
+
+emu:
+	emulator -list-avds
+emu1:
+	emulator @Resizable_Experimental

@@ -1,0 +1,80 @@
+# IDE / Editor
+.idea/
+.vscode/
+.codex/
+*.iml
+
+# Gradle / Kotlin
+.gradle/
+.kotlin/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Android / NDK
+.externalNativeBuild/
+.cxx/
+captures/
+obj/
+intermediates/
+lint/intermediates/
+
+# Local machine / generated config
+local.properties
+google-services.json
+crashlytics-build.properties
+
+# Signing / secrets
+*.jks
+*.keystore
+*.pem
+
+# Build outputs
+*.apk
+*.aab
+*.ap_
+output.json
+
+# Logs / patches / memory dumps
+*.log
+*.hprof
+*.orig
+*.rej
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.python-version
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.pyre/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+dist/
+site/
+.eggs/
+*.egg
+*.egg-info/
+pip-wheel-metadata/
+.venv/
+venv/
+env/
+ENV/
+.ipynb_checkpoints/
