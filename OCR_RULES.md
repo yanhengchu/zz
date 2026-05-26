@@ -28,6 +28,7 @@
 - `id`
 - `pkg`
 - `keywords`
+- `exclude_keywords`
 - `action_type`
 
 按当前使用习惯：
@@ -43,18 +44,19 @@
 CSV 外部实验规则推荐这样写：
 
 ```csv
-id,priority,log,timeout,pkg,keywords,action_type,value_policy,action_target,else_target
-exp_back,0,0,,,"广告|领取成功",BACK,,,
+id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+exp_back,0,0,,,"广告|领取成功",,BACK,,,
 ```
 
 说明：
 
 - `keywords` 用 `|` 分隔，表示这些词都要命中
+- `exclude_keywords` 用 `|` 分隔，表示这些词只要命中任意一个，这条规则就跳过；例如“不在首页才执行”可写 `exclude_keywords=首页`
 - `/` 主要用于不同场景下的别名或等价表达，例如 `继续领奖励/领取奖励`
 - 如果关键词本身需要 `/` 字符，例如 `4/5`，请写成 `\/`，例如 `今日打卡任务 4\/5`
 - 如果关键词后面跟动态时间，可以用 `mm:ss` 作为时间占位符，例如 `倒计时mm:ss/倒计吋mm:ss`
 - 如果关键词中间有不固定数字，可以用 `num` 作为数字占位符，例如 `看视频再得num金币/看广告视频再得num金币`
-- 只想快速实验时，通常只改 `id / keywords / action_type`
+- 只想快速实验时，通常只改 `id / keywords / action_type`；需要排除页面时再补 `exclude_keywords`
 - `CLICK` 时再补 `action_target`
 - 如果需要基于动态时间变化决定是否执行动作，再补 `value_policy`
 - 如果需要按 `num` 的阈值在两个点击点之间分支，再补 `else_target + value_policy`
@@ -62,7 +64,7 @@ exp_back,0,0,,,"广告|领取成功",BACK,,,
 别名示例：
 
 ```csv
-video_swipe,10,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",SWIPE,UNCHANGED,,
+video_swipe,10,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
 ```
 
 OCR 易错字字典示例：
@@ -105,32 +107,32 @@ drop_line_exact,"完整过滤文案"
 默认规则、分辨率覆盖规则和外部实验规则都推荐直接按这套 CSV 结构维护：
 
 ```csv
-id,priority,log,timeout,pkg,keywords,action_type,value_policy,action_target,else_target
-exp_back,0,0,,,"广告|领取成功",BACK,,,
+id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+exp_back,0,0,,,"广告|领取成功",,BACK,,,
 ```
 
 分辨率覆盖示例：
 
 ```csv
-id,priority,log,timeout,pkg,keywords,action_type,value_policy,action_target,else_target
-ad_next,,,,,,,,0.48:0.55,0.48:0.61
+id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+ad_next,,,,,,,,,0.48:0.55,0.48:0.61
 ```
 
 说明：
 
 - 这条覆盖只改 `ad_next` 的两个点击点位
-- 其他字段例如 `pkg / keywords / action_type / value_policy / log` 都继续继承默认规则
+- 其他字段例如 `pkg / keywords / exclude_keywords / action_type / value_policy / log` 都继续继承默认规则
 - 分辨率覆盖文件里的 `id` 必须已经存在于默认规则中；如果找不到对应默认规则，这条覆盖会被忽略并记 warning 日志
 - `ocr_rules_1080x2313.csv` 和 `ocr_rules_1172x2748.csv` 当前都按这种 patch 方式维护，不再承担“默认完整规则”的职责
 
 完整 CSV 示例：
 
 ```csv
-id,priority,log,timeout,pkg,keywords,action_type,value_policy,action_target,else_target
-ad_wait,10,0,,,"广告|后可领奖励",WAIT,,,
-ad_back,10,1,,,"广告|领取成功",BACK,,,
-ad_next,20,0,,,"广告|领取成功|再看一个视频继续领奖励",CLICK,LT:300,0.48:0.56,0.82:0.56
-video_swipe,10,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",SWIPE,UNCHANGED,,
+id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+ad_wait,10,0,,,"广告|后可领奖励",,WAIT,,,
+ad_back,10,1,,,"广告|领取成功",,BACK,,,
+ad_next,20,0,,,"广告|领取成功|再看一个视频继续领奖励","首页",CLICK,LT:300,0.48:0.56,0.82:0.56
+video_swipe,10,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
 ```
 
 ## 3. 顶层结构
@@ -151,6 +153,9 @@ video_swipe,10,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",SWIPE,UNCHANGED,,
   如果关键词中间有动态数字，可以写 `num` 作为数字占位符
   可以写 `ALL` 表示任意非空 OCR 结果都视为命中
   可以写 `TIMEOUT_ALL` 表示只有在对应 `timeout` 已触发时才视为命中
+- `exclude_keywords`：可选；排除关键词列表。任意一项命中时，这条规则直接视为不匹配
+  语法和 `keywords` 相同，同样支持 `|` 分隔多个排除项、`/` 别名、`mm:ss`、`num`、`ALL`
+  常见用法：`keywords=继续看视频得/看视频再得num金币` 且 `exclude_keywords=首页`，表示不在首页时才执行
 - `action_type`：命中后的执行动作类型
 - `action_target`：仅 `CLICK` 时需要填写的主点击比例坐标，格式 `x:y`
 - `else_target`：仅 `CLICK` 时可选；当数值阈值条件不满足时使用的备用点击坐标，格式 `x:y`
@@ -159,6 +164,7 @@ video_swipe,10,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",SWIPE,UNCHANGED,,
 结论：
 
 - 常用基础字段：`id / pkg / keywords / action_type`
+- 排除某些页面或弹窗：再补 `exclude_keywords`
 - 规则冲突时：再补 `priority`
 - 需要排查某条规则时：再补 `log`
 - 点击类规则：再补 `action_target`
@@ -167,10 +173,12 @@ video_swipe,10,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",SWIPE,UNCHANGED,,
 
 - 每轮 OCR 会先按 `priority` 从高到低处理规则；值越大越优先
 - 同一 `priority` 内，按 CSV 当前顺序逐条做 `keywords` 匹配
-- 某条规则 `keywords` 命中后，会继续做 `value_policy` 判断：
-  - 主动作可执行：立即执行，结束本轮
-  - 主动作不可执行，但有 `else_target` 可走：执行备用点击，结束本轮
-  - `value_policy` 不满足，且没有 `else_target`：记为 `skip`，继续尝试同优先级里的下一条规则
+- 某条规则 `keywords` 命中后，会先检查 `exclude_keywords`
+- 如果任意排除词命中，这条规则视为不匹配，继续尝试后续规则
+- 如果没有排除词命中，再继续做 `value_policy` 判断
+- 主动作可执行：立即执行，结束本轮
+- 主动作不可执行，但有 `else_target` 可走：执行备用点击，结束本轮
+- `value_policy` 不满足，且没有 `else_target`：记为 `skip`，继续尝试同优先级里的下一条规则
 - 如果同优先级里前面规则 `skip`，后面同优先级规则仍然有机会命中并执行
 - 如果当前优先级里已经出现过命中规则，但最后都只是 `skip`，本轮不会再继续尝试更低优先级规则
 - 只有当更高优先级规则完全没有任何 `keywords` 命中时，才会继续看更低优先级规则

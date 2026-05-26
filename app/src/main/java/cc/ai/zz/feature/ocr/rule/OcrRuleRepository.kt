@@ -17,8 +17,8 @@ class OcrRuleRepository(
         private const val EXTERNAL_RULES_DIR = "ocr"
         private const val EXTERNAL_RULES_FILE_NAME = "ocr_rules.override.csv"
         private const val EXTERNAL_RULES_TEMPLATE = """
-id,priority,log,timeout,pkg,keywords,action_type,value_policy,action_target,else_target
-exp_back,0,0,,,"广告|领取成功",BACK,,,
+id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+exp_back,0,0,,,"广告|领取成功",,BACK,,,
 """
 
         internal fun mergeRules(
@@ -181,6 +181,7 @@ exp_back,0,0,,,"广告|领取成功",BACK,,,
                 priority = row["priority"]?.toIntOrNull() ?: 0,
                 packages = row["pkg"].splitPipeList(),
                 keywords = keywords,
+                excludeKeywords = row["exclude_keywords"].splitPipeList(),
                 action = action,
                 valuePolicy = row["value_policy"]?.trim().toOcrValuePolicyOrNull(),
                 timeout = row["timeout"]?.trim().toOcrRuleTimeoutOrNull(),
@@ -196,6 +197,7 @@ exp_back,0,0,,,"广告|领取成功",BACK,,,
                 priority = row["priority"].toIntOrNullOrNull(),
                 packages = row["pkg"].toNullablePipeList(),
                 keywords = row["keywords"].toNullablePipeList(),
+                excludeKeywords = row["exclude_keywords"].toNullablePipeList(),
                 actionType = row["action_type"].orEmpty().trim().uppercase().ifEmpty { null },
                 actionTarget = row["action_target"].toClickTargetOrNull(),
                 elseTarget = row["else_target"].toClickTargetOrNull(),
@@ -494,6 +496,7 @@ internal data class OcrActionRulePatch(
     val priority: Int? = null,
     val packages: List<String>? = null,
     val keywords: List<String>? = null,
+    val excludeKeywords: List<String>? = null,
     val actionType: String? = null,
     val actionTarget: OcrClickTarget? = null,
     val elseTarget: OcrClickTarget? = null,
@@ -507,6 +510,7 @@ private fun OcrActionRule.applyPatch(patch: OcrActionRulePatch): OcrActionRule {
         priority = patch.priority ?: priority,
         packages = patch.packages ?: packages,
         keywords = patch.keywords ?: keywords,
+        excludeKeywords = patch.excludeKeywords ?: excludeKeywords,
         action = action.applyPatch(patch),
         valuePolicy = patch.valuePolicy ?: valuePolicy,
         timeout = patch.timeout ?: timeout,

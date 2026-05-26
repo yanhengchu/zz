@@ -1,11 +1,11 @@
-id,priority,log,timeout,pkg,keywords,action_type,value_policy,action_target,else_target
+id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
 
-live_ad_open_12,,,,,,,,0.50:0.66,
-live_ad_open_3,,,,,,,,0.50:0.60,
-live_ad_next,,,,,,,,0.50:0.58,
-aweme_ad_next,,,,,,,,0.50:0.57,
+live_ad_open_12,,,,,,,,,0.50:0.66,
+live_ad_open_3,,,,,,,,,0.50:0.60,
+live_ad_next,,,,,,,,,0.50:0.58,
+aweme_ad_next,,,,,,,,,0.50:0.57,
 
 
-live_tree_list_ad,,,,,,,,0.87:0.65,
-live_tree_list_search,,,,,,,,0.87:0.96,
+live_tree_list_ad,,,,,,,,,0.87:0.65,
+live_tree_list_search,,,,,,,,,0.87:0.96,
 

@@ -5,6 +5,7 @@ data class OcrActionRule(
     val priority: Int,
     val packages: List<String> = emptyList(),
     val keywords: List<String>,
+    val excludeKeywords: List<String> = emptyList(),
     val action: OcrRuleAction,
     val valuePolicy: OcrValuePolicy? = null,
     val timeout: OcrRuleTimeout? = null,

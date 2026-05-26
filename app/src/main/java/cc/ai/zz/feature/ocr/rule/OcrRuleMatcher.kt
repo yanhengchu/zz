@@ -71,6 +71,11 @@ class OcrRuleMatcher(
                 dynamicValue = aliasMatch.dynamicValue
             }
         }
+        excludeKeywords.forEach { keyword ->
+            if (keyword.matchesAnyAlias(text = text, allowTimeoutWildcard = false) != null) {
+                return null
+            }
+        }
         return OcrRuleMatch(rule = this, dynamicValue = dynamicValue)
     }
 

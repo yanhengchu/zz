@@ -86,6 +86,30 @@ class OcrRuleMatcherTest {
     }
 
     @Test
+    fun findFirstMatch_returnsNullWhenExcludeKeywordMatches() {
+        val rule = OcrActionRule(
+            id = "open_ad",
+            priority = 10,
+            keywords = listOf("继续看视频得/看视频再得num金币"),
+            excludeKeywords = listOf("首页"),
+            action = OcrRuleAction.Click(OcrClickTarget(0.5f, 0.5f))
+        )
+
+        val matchedOnHome = matcher.findFirstMatch(
+            rules = listOf(rule),
+            text = "首页 看视频再得120金币"
+        )
+        val matchedOutsideHome = matcher.findFirstMatch(
+            rules = listOf(rule),
+            text = "任务弹窗 看视频再得120金币"
+        )
+
+        assertNull(matchedOnHome)
+        assertEquals("open_ad", matchedOutsideHome?.rule?.id)
+        assertEquals("120", matchedOutsideHome?.dynamicValue)
+    }
+
+    @Test
     fun findFirstMatch_allowsSameRuleToMatchAgainOnNextRound() {
         val rule = createRule(
             id = "back",

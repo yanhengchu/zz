@@ -104,8 +104,8 @@ class OcrRuleRepositoryMergeTest {
 
         val patches = OcrRuleRepository.parseCsvRulePatches(
             """
-id,priority,log,timeout,pkg,keywords,action_type,value_policy,action_target,else_target
-ad_next,,,,,,,,0.48:0.55,0.48:0.61
+id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+ad_next,,,,,,,,,0.48:0.55,0.48:0.61
             """.trimIndent()
         )
 
