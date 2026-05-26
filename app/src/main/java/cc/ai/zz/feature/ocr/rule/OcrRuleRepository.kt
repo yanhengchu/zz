@@ -17,26 +17,26 @@ class OcrRuleRepository(
         private const val EXTERNAL_RULES_DIR = "ocr"
         private const val EXTERNAL_RULES_FILE_NAME = "ocr_rules.override.csv"
         private const val EXTERNAL_RULES_TEMPLATE = """
-id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
-exp_back,0,0,,,"广告|领取成功",,BACK,,,
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+exp_back,0,,,"广告|领取成功",,BACK,,,
 """
 
         internal fun mergeRules(
             bundledRules: List<OcrActionRule>,
             externalRules: List<OcrActionRule>
         ): List<OcrActionRule> {
-            if (externalRules.isEmpty()) return bundledRules.sortedByDescending { it.priority }
+            if (externalRules.isEmpty()) return bundledRules
             val mergedById = linkedMapOf<String, OcrActionRule>()
             bundledRules.forEach { rule -> mergedById[rule.id] = rule }
             externalRules.forEach { rule -> mergedById[rule.id] = rule }
-            return mergedById.values.sortedByDescending { it.priority }
+            return mergedById.values.toList()
         }
 
         internal fun mergeRulePatches(
             baseRules: List<OcrActionRule>,
             patches: List<OcrActionRulePatch>
         ): List<OcrActionRule> {
-            if (patches.isEmpty()) return baseRules.sortedByDescending { it.priority }
+            if (patches.isEmpty()) return baseRules
             val patchById = patches.associateBy { it.id }
             val patchedIds = linkedSetOf<String>()
             val mergedRules = baseRules.map { baseRule ->
@@ -50,7 +50,7 @@ exp_back,0,0,,,"广告|领取成功",,BACK,,,
                 .forEach { patch ->
                     Log.w(TAG, "ignored OCR resolution override for unknown rule id=${patch.id}")
                 }
-            return mergedRules.sortedByDescending { it.priority }
+            return mergedRules
         }
 
         internal fun parseCsvRules(rawCsv: String): List<OcrActionRule> {
@@ -70,7 +70,7 @@ exp_back,0,0,,,"广告|领取成功",,BACK,,,
                     }.toMap()
                     parseCsvRule(row)?.let(::add)
                 }
-            }.sortedByDescending { it.priority }
+            }
         }
 
         internal fun parseCsvRulePatches(rawCsv: String): List<OcrActionRulePatch> {
@@ -178,7 +178,6 @@ exp_back,0,0,,,"广告|领取成功",,BACK,,,
             val action = parseCsvAction(row) ?: return null
             return OcrActionRule(
                 id = id,
-                priority = row["priority"]?.toIntOrNull() ?: 0,
                 packages = row["pkg"].splitPipeList(),
                 keywords = keywords,
                 excludeKeywords = row["exclude_keywords"].splitPipeList(),
@@ -194,7 +193,6 @@ exp_back,0,0,,,"广告|领取成功",,BACK,,,
             if (id.isEmpty()) return null
             return OcrActionRulePatch(
                 id = id,
-                priority = row["priority"].toIntOrNullOrNull(),
                 packages = row["pkg"].toNullablePipeList(),
                 keywords = row["keywords"].toNullablePipeList(),
                 excludeKeywords = row["exclude_keywords"].toNullablePipeList(),
@@ -493,7 +491,6 @@ data class OcrBundledRuleInfo(
 
 internal data class OcrActionRulePatch(
     val id: String,
-    val priority: Int? = null,
     val packages: List<String>? = null,
     val keywords: List<String>? = null,
     val excludeKeywords: List<String>? = null,
@@ -507,7 +504,6 @@ internal data class OcrActionRulePatch(
 
 private fun OcrActionRule.applyPatch(patch: OcrActionRulePatch): OcrActionRule {
     return copy(
-        priority = patch.priority ?: priority,
         packages = patch.packages ?: packages,
         keywords = patch.keywords ?: keywords,
         excludeKeywords = patch.excludeKeywords ?: excludeKeywords,

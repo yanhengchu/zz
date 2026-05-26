@@ -85,16 +85,13 @@ internal fun handleRecognizedTextWithRules(
     val activeRules = timeoutGate.filterActiveRules(rules)
     val triggeredRuleIds = timeoutGate.getTriggeredRuleIds()
     var shouldLogText = false
-    val selection = selectRuleWithinPriorityGroup(
-        items = activeRules,
-        priorityOf = { it.priority }
-    ) { rule ->
+    val selection = selectRuleInOrder(activeRules) { rule ->
         val match = matcher.findFirstMatch(
             rules = listOf(rule),
             text = text,
             packageName = packageName,
             timeoutTriggeredRuleIds = triggeredRuleIds
-        ) ?: return@selectRuleWithinPriorityGroup OcrRuleTraversalResult.NoMatch
+        ) ?: return@selectRuleInOrder OcrRuleTraversalResult.NoMatch
         shouldLogText = shouldLogText || rule.log
         timeoutGate.onRuleMatched(rule.id)
         onLog("matched OCR rule id=${rule.id} pkg=$packageName")
@@ -124,11 +121,11 @@ internal fun handleRecognizedTextWithRules(
             onLog(
                 "skip OCR action by dynamic policy rule=${rule.id} valuePolicy=${rule.valuePolicy} current=${match.dynamicValue}"
             )
-            return@selectRuleWithinPriorityGroup OcrRuleTraversalResult.Skip(rule.id)
+            return@selectRuleInOrder OcrRuleTraversalResult.Skip(rule.id)
         }
         if (actionCooldownGate.shouldBlock(rule)) {
             onLog("skip OCR action by cooldown rule=${rule.id}")
-            return@selectRuleWithinPriorityGroup OcrRuleTraversalResult.Skip(rule.id)
+            return@selectRuleInOrder OcrRuleTraversalResult.Skip(rule.id)
         }
         val executed = executeRule(rule, decision.useElseTarget)
         dynamicValueGate.onActionResult(decision, executed)
@@ -138,7 +135,7 @@ internal fun handleRecognizedTextWithRules(
             onLog(
                 "mark OCR dynamic value as pending because action did not execute rule=${rule.id} current=${match.dynamicValue}"
             )
-            return@selectRuleWithinPriorityGroup OcrRuleTraversalResult.Fail(rule.id)
+            return@selectRuleInOrder OcrRuleTraversalResult.Fail(rule.id)
         }
         OcrRuleTraversalResult.Execute(
             ruleId = rule.id,
@@ -197,34 +194,18 @@ internal sealed interface OcrRuleTraversalResult {
     data class Skip(val ruleId: String) : OcrRuleTraversalResult
 }
 
-internal fun <T> selectRuleWithinPriorityGroup(
+internal fun <T> selectRuleInOrder(
     items: List<T>,
-    priorityOf: (T) -> Int,
     evaluate: (T) -> OcrRuleTraversalResult
 ): OcrRuleTraversalResult? {
-    var currentPriority: Int? = null
-    var matchedInCurrentPriority = false
     var lastSkipped: OcrRuleTraversalResult.Skip? = null
 
     items.forEach { item ->
-        val priority = priorityOf(item)
-        if (currentPriority != null && priority != currentPriority) {
-            if (matchedInCurrentPriority) {
-                return lastSkipped
-            }
-            currentPriority = priority
-        } else if (currentPriority == null) {
-            currentPriority = priority
-        }
-
         when (val result = evaluate(item)) {
             OcrRuleTraversalResult.NoMatch -> Unit
             is OcrRuleTraversalResult.Execute -> return result
             is OcrRuleTraversalResult.Fail -> return result
-            is OcrRuleTraversalResult.Skip -> {
-                matchedInCurrentPriority = true
-                lastSkipped = result
-            }
+            is OcrRuleTraversalResult.Skip -> lastSkipped = result
         }
     }
 

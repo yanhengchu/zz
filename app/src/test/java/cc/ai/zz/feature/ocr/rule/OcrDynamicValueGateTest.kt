@@ -104,7 +104,6 @@ class OcrDynamicValueGateTest {
     fun evaluate_numericThreshold_usesElseTargetWhenConditionDoesNotMatch() {
         val rule = OcrActionRule(
             id = "ad_next",
-            priority = 10,
             keywords = listOf("再看一个视频继续领奖励", "num金币"),
             action = OcrRuleAction.Click(
                 target = OcrClickTarget(0.5f, 0.56f),
@@ -125,7 +124,6 @@ class OcrDynamicValueGateTest {
     private fun createRule(valuePolicy: OcrValuePolicy): OcrActionRule {
         return OcrActionRule(
             id = "video_swipe",
-            priority = 10,
             keywords = listOf("首页", "倒计时mm:ss"),
             action = OcrRuleAction.Swipe,
             valuePolicy = valuePolicy

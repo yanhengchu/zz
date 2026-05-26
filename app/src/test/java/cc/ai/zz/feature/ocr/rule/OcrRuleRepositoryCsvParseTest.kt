@@ -8,28 +8,28 @@ class OcrRuleRepositoryCsvParseTest {
     fun parseCsvRules_parsesMinimalAndOptionalFields() {
         val rules = OcrRuleRepository.parseCsvRules(
             """
-id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
-exp_back,0,true,,,"广告|领取成功",,BACK,,,
-exp_swipe,10,0,,cc.ai.zz|com.demo.app,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,CHANGED,,
-exp_cont,20,1,act_back:40,,"广告|领取成功|继续领奖励",,CLICK,LT:300,0.48:0.56,0.82:0.56
-exp_exclude,30,0,,com.demo.app,"看视频再得num金币","首页|直播间",CLICK,,0.50:0.60,
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+exp_back,true,,,"广告|领取成功",,BACK,,,
+exp_swipe,0,,cc.ai.zz|com.demo.app,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,CHANGED,,
+exp_cont,1,act_back:40,,"广告|领取成功|继续领奖励",,CLICK,LT:300,0.48:0.56,0.82:0.56
+exp_exclude,0,,com.demo.app,"看视频再得num金币","首页|直播间",CLICK,,0.50:0.60,
             """.trimIndent()
         )
 
-        assertEquals(listOf("exp_exclude", "exp_cont", "exp_swipe", "exp_back"), rules.map { it.id })
+        assertEquals(listOf("exp_back", "exp_swipe", "exp_cont", "exp_exclude"), rules.map { it.id })
 
-        val backRule = rules.last()
+        val backRule = rules.first()
         assertEquals(listOf("广告", "领取成功"), backRule.keywords)
         assertEquals(true, backRule.log)
 
-        val swipeRule = rules[2]
+        val swipeRule = rules[1]
         assertEquals("exp_swipe", swipeRule.id)
         assertEquals(listOf("cc.ai.zz", "com.demo.app"), swipeRule.packages)
         assertEquals(OcrRuleAction.Swipe, swipeRule.action)
         assertEquals(OcrValuePolicy.Changed, swipeRule.valuePolicy)
         assertEquals(false, swipeRule.log)
 
-        val clickRule = rules[1]
+        val clickRule = rules[2]
         assertEquals(true, clickRule.log)
         val clickAction = clickRule.action as OcrRuleAction.Click
         assertEquals(0.48f, clickAction.target.xRatio)
@@ -45,7 +45,7 @@ exp_exclude,30,0,,com.demo.app,"看视频再得num金币","首页|直播间",CLI
             clickRule.timeout
         )
 
-        val excludeRule = rules.first()
+        val excludeRule = rules.last()
         assertEquals(listOf("看视频再得num金币"), excludeRule.keywords)
         assertEquals(listOf("首页", "直播间"), excludeRule.excludeKeywords)
     }

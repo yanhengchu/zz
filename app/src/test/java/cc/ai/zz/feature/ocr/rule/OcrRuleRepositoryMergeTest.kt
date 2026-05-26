@@ -7,8 +7,8 @@ import org.junit.Test
 class OcrRuleRepositoryMergeTest {
     @Test
     fun mergeRules_overridesBundledRuleWhenExternalUsesSameId() {
-        val bundledRule = createRule(id = "ad_back", priority = 10)
-        val externalRule = createRule(id = "ad_back", priority = 99)
+        val bundledRule = createRule(id = "ad_back", keywords = listOf("旧广告"))
+        val externalRule = createRule(id = "ad_back", keywords = listOf("新广告"))
 
         val mergedRules = OcrRuleRepository.mergeRules(
             bundledRules = listOf(bundledRule),
@@ -16,41 +16,40 @@ class OcrRuleRepositoryMergeTest {
         )
 
         assertEquals(1, mergedRules.size)
-        assertEquals(99, mergedRules.single().priority)
+        assertEquals(externalRule, mergedRules.single())
     }
 
     @Test
     fun mergeRules_appendsExternalRuleWhenIdIsNew() {
-        val bundledRule = createRule(id = "ad_back", priority = 10)
-        val externalRule = createRule(id = "exp_rule", priority = 20)
+        val bundledRule = createRule(id = "ad_back")
+        val externalRule = createRule(id = "exp_rule")
 
         val mergedRules = OcrRuleRepository.mergeRules(
             bundledRules = listOf(bundledRule),
             externalRules = listOf(externalRule)
         )
 
-        assertEquals(listOf("exp_rule", "ad_back"), mergedRules.map { it.id })
+        assertEquals(listOf("ad_back", "exp_rule"), mergedRules.map { it.id })
     }
 
     @Test
     fun mergeRules_externalCsvRuleOverridesBundledRuleWithSameId() {
-        val bundledRule = createRule(id = "ad_back", priority = 10)
-        val csvRule = createRule(id = "ad_back", priority = 30)
+        val bundledRule = createRule(id = "ad_back", keywords = listOf("旧广告"))
+        val csvRule = createRule(id = "ad_back", keywords = listOf("新广告"))
 
         val mergedRules = OcrRuleRepository.mergeRules(
             bundledRules = listOf(bundledRule),
             externalRules = listOf(csvRule)
         )
 
-        assertEquals(30, mergedRules.single().priority)
+        assertEquals(csvRule, mergedRules.single())
     }
 
     @Test
     fun mergeRules_externalSwipeRuleOverridesBundledRuleAndKeepsAliasKeywords() {
-        val bundledRule = createRule(id = "video_swipe", priority = 10)
+        val bundledRule = createRule(id = "video_swipe")
         val externalRule = OcrActionRule(
             id = "video_swipe",
-            priority = 20,
             keywords = listOf("首页", "倒计时mm:ss/倒计吋mm:ss"),
             action = OcrRuleAction.Swipe,
             valuePolicy = OcrValuePolicy.Changed
@@ -62,7 +61,6 @@ class OcrRuleRepositoryMergeTest {
         )
 
         assertEquals(1, mergedRules.size)
-        assertEquals(20, mergedRules.single().priority)
         assertEquals(listOf("首页", "倒计时mm:ss/倒计吋mm:ss"), mergedRules.single().keywords)
         assertEquals(OcrRuleAction.Swipe, mergedRules.single().action)
         assertEquals(OcrValuePolicy.Changed, mergedRules.single().valuePolicy)
@@ -70,9 +68,9 @@ class OcrRuleRepositoryMergeTest {
 
     @Test
     fun mergeRules_resolutionOverridesBundledAndExternalOverridesResolution() {
-        val bundledRule = createRule(id = "ad_next", priority = 0)
-        val resolutionRule = createRule(id = "ad_next", priority = 5)
-        val externalRule = createRule(id = "ad_next", priority = 9)
+        val bundledRule = createRule(id = "ad_next", keywords = listOf("默认"))
+        val resolutionRule = createRule(id = "ad_next", keywords = listOf("分辨率覆盖"))
+        val externalRule = createRule(id = "ad_next", keywords = listOf("外部覆盖"))
 
         val bundledMerged = OcrRuleRepository.mergeRules(
             bundledRules = listOf(bundledRule),
@@ -84,14 +82,13 @@ class OcrRuleRepositoryMergeTest {
         )
 
         assertEquals(1, finalMerged.size)
-        assertEquals(9, finalMerged.single().priority)
+        assertEquals(externalRule, finalMerged.single())
     }
 
     @Test
     fun mergeRulePatches_overridesOnlySpecifiedFields() {
         val baseRule = OcrActionRule(
             id = "ad_next",
-            priority = 2,
             packages = listOf("cc.ai.zz"),
             keywords = listOf("继续领奖励", "坚持退出"),
             action = OcrRuleAction.Click(
@@ -104,15 +101,14 @@ class OcrRuleRepositoryMergeTest {
 
         val patches = OcrRuleRepository.parseCsvRulePatches(
             """
-id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
-ad_next,,,,,,,,,0.48:0.55,0.48:0.61
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+ad_next,,,,,,,,0.48:0.55,0.48:0.61
             """.trimIndent()
         )
 
         val mergedRules = OcrRuleRepository.mergeRulePatches(listOf(baseRule), patches)
         val mergedRule = mergedRules.single()
 
-        assertEquals(2, mergedRule.priority)
         assertEquals(listOf("cc.ai.zz"), mergedRule.packages)
         assertEquals(listOf("继续领奖励", "坚持退出"), mergedRule.keywords)
         assertEquals(OcrValuePolicy.NumericThreshold(NumericCompareOperator.GT, 300), mergedRule.valuePolicy)
@@ -165,11 +161,13 @@ ad_next,,,,,,,,,0.48:0.55,0.48:0.61
         assertNull(path)
     }
 
-    private fun createRule(id: String, priority: Int): OcrActionRule {
+    private fun createRule(
+        id: String,
+        keywords: List<String> = listOf("广告", "领取成功")
+    ): OcrActionRule {
         return OcrActionRule(
             id = id,
-            priority = priority,
-            keywords = listOf("广告", "领取成功"),
+            keywords = keywords,
             action = OcrRuleAction.Wait
         )
     }

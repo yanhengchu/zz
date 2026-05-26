@@ -2,7 +2,6 @@ package cc.ai.zz.feature.ocr.rule
 
 data class OcrActionRule(
     val id: String,
-    val priority: Int,
     val packages: List<String> = emptyList(),
     val keywords: List<String>,
     val excludeKeywords: List<String> = emptyList(),

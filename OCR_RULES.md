@@ -33,9 +33,9 @@
 
 按当前使用习惯：
 
-- 规则有冲突时，再补 `priority`
 - 需要排查某条规则时，再补 `log`
 - 点击类规则，再补 `action_target`
+- 规则有冲突时，直接调整 CSV 上下顺序；越靠上越先匹配
 
 如果只是临时加一条实验规则，推荐先按最小写法配置，其他字段都可以省略，系统会走默认值。
 
@@ -44,8 +44,8 @@
 CSV 外部实验规则推荐这样写：
 
 ```csv
-id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
-exp_back,0,0,,,"广告|领取成功",,BACK,,,
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+exp_back,0,,,"广告|领取成功",,BACK,,,
 ```
 
 说明：
@@ -64,7 +64,7 @@ exp_back,0,0,,,"广告|领取成功",,BACK,,,
 别名示例：
 
 ```csv
-video_swipe,10,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
+video_swipe,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
 ```
 
 OCR 易错字字典示例：
@@ -107,15 +107,15 @@ drop_line_exact,"完整过滤文案"
 默认规则、分辨率覆盖规则和外部实验规则都推荐直接按这套 CSV 结构维护：
 
 ```csv
-id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
-exp_back,0,0,,,"广告|领取成功",,BACK,,,
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+exp_back,0,,,"广告|领取成功",,BACK,,,
 ```
 
 分辨率覆盖示例：
 
 ```csv
-id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
-ad_next,,,,,,,,,0.48:0.55,0.48:0.61
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+ad_next,,,,,,,,0.48:0.55,0.48:0.61
 ```
 
 说明：
@@ -128,23 +128,23 @@ ad_next,,,,,,,,,0.48:0.55,0.48:0.61
 完整 CSV 示例：
 
 ```csv
-id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
-ad_wait,10,0,,,"广告|后可领奖励",,WAIT,,,
-ad_back,10,1,,,"广告|领取成功",,BACK,,,
-ad_next,20,0,,,"广告|领取成功|再看一个视频继续领奖励","首页",CLICK,LT:300,0.48:0.56,0.82:0.56
-video_swipe,10,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+ad_wait,0,,,"广告|后可领奖励",,WAIT,,,
+ad_back,1,,,"广告|领取成功",,BACK,,,
+ad_next,0,,,"广告|领取成功|再看一个视频继续领奖励","首页",CLICK,LT:300,0.48:0.56,0.82:0.56
+video_swipe,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
 ```
 
 ## 3. 顶层结构
 
 - CSV 没有 `rules` 顶层，直接一行一条规则。
+- 规则按 CSV 自上而下匹配；更具体、更希望优先生效的规则放在更上面。
 
 ## 4. 规则字段说明
 
 - `id`：规则唯一标识，用于日志、排查和区分规则
-- `priority`：优先级，放在 `id` 后面；值越大越先匹配；可省略，默认 `0`
 - `pkg`：可选；规则生效的包名范围。空着表示全场景生效；写 1 个表示只对单个包名生效；写多个时用 `|` 分隔，命中任意一个即可
-- `log`：是否在该规则命中时额外打印这一轮 OCR 原始识别文本；放在 `priority` 后面；默认 `0`
+- `log`：是否在该规则命中时额外打印这一轮 OCR 原始识别文本；默认 `0`
 - `keywords`：必须全部命中的关键词列表
   其中同一关键词位可用 `/` 写多个别名，命中任意一个即可
   `/` 主要用于不同场景下的等价表达，不建议把所有 OCR 错别字都堆在这里
@@ -165,23 +165,20 @@ video_swipe,10,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
 
 - 常用基础字段：`id / pkg / keywords / action_type`
 - 排除某些页面或弹窗：再补 `exclude_keywords`
-- 规则冲突时：再补 `priority`
+- 规则冲突时：调整 CSV 上下顺序
 - 需要排查某条规则时：再补 `log`
 - 点击类规则：再补 `action_target`
 
 ## 4.1 当前执行流程
 
-- 每轮 OCR 会先按 `priority` 从高到低处理规则；值越大越优先
-- 同一 `priority` 内，按 CSV 当前顺序逐条做 `keywords` 匹配
+- 每轮 OCR 会按 CSV 当前顺序自上而下逐条做 `keywords` 匹配
 - 某条规则 `keywords` 命中后，会先检查 `exclude_keywords`
 - 如果任意排除词命中，这条规则视为不匹配，继续尝试后续规则
 - 如果没有排除词命中，再继续做 `value_policy` 判断
 - 主动作可执行：立即执行，结束本轮
 - 主动作不可执行，但有 `else_target` 可走：执行备用点击，结束本轮
-- `value_policy` 不满足，且没有 `else_target`：记为 `skip`，继续尝试同优先级里的下一条规则
-- 如果同优先级里前面规则 `skip`，后面同优先级规则仍然有机会命中并执行
-- 如果当前优先级里已经出现过命中规则，但最后都只是 `skip`，本轮不会再继续尝试更低优先级规则
-- 只有当更高优先级规则完全没有任何 `keywords` 命中时，才会继续看更低优先级规则
+- `value_policy` 不满足，且没有 `else_target`：记为 `skip`，继续尝试下一条规则
+- 如果前面规则 `skip`，后面规则仍然有机会命中并执行
 - `ALL`：表示任意非空 OCR 结果都视为命中
 - `TIMEOUT_ALL`：只在对应 `timeout` 已触发时才会命中，普通 OCR 轮次不会直接命中
 - `timeout` 当前语义是“源规则执行成功后，等待目标规则在后续轮次命中”；不是“时间一到立刻直接执行动作”

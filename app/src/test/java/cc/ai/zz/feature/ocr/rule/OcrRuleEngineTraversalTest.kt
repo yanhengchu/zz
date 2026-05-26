@@ -5,16 +5,15 @@ import org.junit.Test
 
 class OcrRuleEngineTraversalTest {
     @Test
-    fun selectRuleWithinPriorityGroup_usesNextRuleWhenSamePrioritySkips() {
+    fun selectRuleInOrder_usesNextRuleWhenRuleSkips() {
         val items = listOf(
-            RuleCase("first", 10, OcrRuleTraversalResult.Skip("first")),
-            RuleCase("second", 10, OcrRuleTraversalResult.Execute("second")),
-            RuleCase("third", 0, OcrRuleTraversalResult.Execute("third"))
+            RuleCase("first", OcrRuleTraversalResult.Skip("first")),
+            RuleCase("second", OcrRuleTraversalResult.Execute("second")),
+            RuleCase("third", OcrRuleTraversalResult.Execute("third"))
         )
 
-        val selected = selectRuleWithinPriorityGroup(
+        val selected = selectRuleInOrder(
             items = items,
-            priorityOf = { it.priority },
             evaluate = { it.result }
         )
 
@@ -22,31 +21,30 @@ class OcrRuleEngineTraversalTest {
     }
 
     @Test
-    fun selectRuleWithinPriorityGroup_doesNotFallThroughToLowerPriorityAfterSkip() {
+    fun selectRuleInOrder_returnsLastSkipWhenNoRuleExecutes() {
         val items = listOf(
-            RuleCase("first", 10, OcrRuleTraversalResult.Skip("first")),
-            RuleCase("second", 0, OcrRuleTraversalResult.Execute("second"))
+            RuleCase("first", OcrRuleTraversalResult.Skip("first")),
+            RuleCase("second", OcrRuleTraversalResult.NoMatch),
+            RuleCase("third", OcrRuleTraversalResult.Skip("third"))
         )
 
-        val selected = selectRuleWithinPriorityGroup(
+        val selected = selectRuleInOrder(
             items = items,
-            priorityOf = { it.priority },
             evaluate = { it.result }
         )
 
-        assertEquals(OcrRuleTraversalResult.Skip("first"), selected)
+        assertEquals(OcrRuleTraversalResult.Skip("third"), selected)
     }
 
     @Test
-    fun selectRuleWithinPriorityGroup_fallsThroughWhenHigherPriorityHasNoMatch() {
+    fun selectRuleInOrder_fallsThroughWhenRuleHasNoMatch() {
         val items = listOf(
-            RuleCase("first", 10, OcrRuleTraversalResult.NoMatch),
-            RuleCase("second", 0, OcrRuleTraversalResult.Execute("second"))
+            RuleCase("first", OcrRuleTraversalResult.NoMatch),
+            RuleCase("second", OcrRuleTraversalResult.Execute("second"))
         )
 
-        val selected = selectRuleWithinPriorityGroup(
+        val selected = selectRuleInOrder(
             items = items,
-            priorityOf = { it.priority },
             evaluate = { it.result }
         )
 
@@ -55,7 +53,6 @@ class OcrRuleEngineTraversalTest {
 
     private data class RuleCase(
         val id: String,
-        val priority: Int,
         val result: OcrRuleTraversalResult
     )
 }

@@ -52,12 +52,10 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_returnsHighestPriorityMatchedRule() {
         val lowPriorityRule = createRule(
             id = "low",
-            priority = 10,
             keywords = listOf("广告", "领取成功")
         )
         val highPriorityRule = createRule(
             id = "high",
-            priority = 20,
             keywords = listOf("广告", "领取成功", "继续领奖励")
         )
 
@@ -73,7 +71,6 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_returnsNullWhenKeywordIsMissing() {
         val rule = createRule(
             id = "back",
-            priority = 10,
             keywords = listOf("广告", "领取成功", "继续领奖励")
         )
 
@@ -89,7 +86,6 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_returnsNullWhenExcludeKeywordMatches() {
         val rule = OcrActionRule(
             id = "open_ad",
-            priority = 10,
             keywords = listOf("继续看视频得/看视频再得num金币"),
             excludeKeywords = listOf("首页"),
             action = OcrRuleAction.Click(OcrClickTarget(0.5f, 0.5f))
@@ -113,7 +109,6 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_allowsSameRuleToMatchAgainOnNextRound() {
         val rule = createRule(
             id = "back",
-            priority = 10,
             keywords = listOf("广告", "领取成功")
         )
 
@@ -135,7 +130,6 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_ignoresSpacesAndPunctuation() {
         val rule = createRule(
             id = "video_swipe",
-            priority = 10,
             keywords = listOf("首页", "去赚钱")
         )
 
@@ -151,7 +145,6 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_supportsKeywordAliasesInSingleSlot() {
         val rule = createRule(
             id = "video_swipe",
-            priority = 10,
             keywords = listOf("首页", "去赚钱", "倒计时/倒计吋")
         )
 
@@ -167,7 +160,6 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_supportsConfusionDictionaryForSingleCharacters() {
         val rule = createRule(
             id = "ad_done",
-            priority = 10,
             keywords = listOf("已成功领取奖励", "坚持退出", "倒计时mm:ss")
         )
 
@@ -184,7 +176,6 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_supportsRewardConfusionsWithoutExtraAliasPhrases() {
         val rule = createRule(
             id = "ad_wait",
-            priority = 10,
             keywords = listOf("后可领奖励")
         )
 
@@ -205,7 +196,6 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_supportsEscapedSlashInsideKeyword() {
         val rule = createRule(
             id = "checkin",
-            priority = 10,
             keywords = listOf("今日打卡任务 4\\/5", "广告完成打卡")
         )
 
@@ -221,12 +211,10 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_treatsSpaceInsideEscapedSlashKeywordAsEquivalent() {
         val ruleWithSpace = createRule(
             id = "with_space",
-            priority = 10,
             keywords = listOf("今日打卡任务 4\\/5")
         )
         val ruleWithoutSpace = createRule(
             id = "without_space",
-            priority = 10,
             keywords = listOf("今日打卡任务4\\/5")
         )
 
@@ -255,7 +243,6 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_supportsTimePlaceholderAliases() {
         val rule = createRule(
             id = "video_swipe",
-            priority = 10,
             keywords = listOf("首页", "倒计时mm:ss/倒计吋mm:ss")
         )
 
@@ -271,7 +258,6 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_keepsTimePlaceholderWhenAsciiLettersAreRemoved() {
         val rule = createRule(
             id = "video_swipe",
-            priority = 10,
             keywords = listOf("倒计时mm:ss")
         )
 
@@ -288,7 +274,6 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_supportsNumberPlaceholderAliases() {
         val rule = createRule(
             id = "ad_bonus",
-            priority = 10,
             keywords = listOf("看视频再得num金币/看广告视频再得num金币")
         )
 
@@ -317,7 +302,6 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_keepsNumberPlaceholderWhenAsciiLettersAreRemoved() {
         val rule = createRule(
             id = "ad_next",
-            priority = 10,
             keywords = listOf("num再看一个视频继续领奖励", "继续领奖励", "坚持退出")
         )
 
@@ -334,7 +318,6 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_extractsNumberWhenContinueNormalizesToJidu() {
         val rule = createRule(
             id = "live_ad_next",
-            priority = 10,
             keywords = listOf("num再看一个视频继续领奖励")
         )
 
@@ -351,7 +334,6 @@ class OcrRuleMatcherTest {
     fun debugRuleKeywords_keepsNumberPlaceholderWhenConfusionMapTouchesOtherChineseChars() {
         val rule = createRule(
             id = "live_ad_next",
-            priority = 10,
             keywords = listOf("num再看一个视频继续领奖励")
         )
 
@@ -367,7 +349,6 @@ class OcrRuleMatcherTest {
     fun findFirstMatch_extractsTimerDynamicValue() {
         val rule = OcrActionRule(
             id = "video_swipe",
-            priority = 10,
             keywords = listOf("首页", "倒计时mm:ss/倒计吋mm:ss"),
             action = OcrRuleAction.Swipe,
             valuePolicy = OcrValuePolicy.Changed
@@ -402,7 +383,6 @@ ocr: none
         )
         val rule = createRule(
             id = "ad_bonus",
-            priority = 10,
             keywords = listOf("num金币")
         )
 
@@ -419,12 +399,10 @@ ocr: none
     fun findFirstMatch_honorsConfiguredPackages() {
         val globalRule = createRule(
             id = "global",
-            priority = 10,
             keywords = listOf("广告")
         )
         val scopedRule = OcrActionRule(
             id = "scoped",
-            priority = 20,
             packages = listOf("com.demo.target", "cc.ai.zz"),
             keywords = listOf("广告"),
             action = OcrRuleAction.Wait
@@ -449,7 +427,6 @@ ocr: none
     fun findFirstMatch_supportsAllKeywordAsWildcard() {
         val wildcardRule = OcrActionRule(
             id = "wildcard",
-            priority = 20,
             keywords = listOf("ALL"),
             action = OcrRuleAction.Back
         )
@@ -466,7 +443,6 @@ ocr: none
     fun findFirstMatch_keepsAllKeywordWhenAsciiLettersAreRemoved() {
         val wildcardRule = OcrActionRule(
             id = "wildcard",
-            priority = 20,
             keywords = listOf("ALL"),
             action = OcrRuleAction.Back
         )
@@ -483,13 +459,11 @@ ocr: none
     fun findFirstMatch_prefersHigherPriorityNonWildcardRuleOverAllKeyword() {
         val wildcardRule = OcrActionRule(
             id = "act_back",
-            priority = 0,
             keywords = listOf("ALL"),
             action = OcrRuleAction.Back
         )
         val normalRule = createRule(
             id = "ad_done",
-            priority = 10,
             keywords = listOf("领取成功")
         )
 
@@ -505,7 +479,6 @@ ocr: none
     fun findFirstMatch_doesNotMatchTimeoutAllWithoutTriggeredTimeout() {
         val timeoutRule = OcrActionRule(
             id = "timeout_back",
-            priority = 0,
             keywords = listOf("TIMEOUT_ALL"),
             action = OcrRuleAction.Back
         )
@@ -522,7 +495,6 @@ ocr: none
     fun findFirstMatch_matchesTimeoutAllAfterTimeoutTriggered() {
         val timeoutRule = OcrActionRule(
             id = "timeout_back",
-            priority = 0,
             keywords = listOf("TIMEOUT_ALL"),
             action = OcrRuleAction.Back
         )
@@ -540,7 +512,6 @@ ocr: none
     fun findFirstMatch_keepsTimeoutAllKeywordWhenAsciiLettersAreRemoved() {
         val timeoutRule = OcrActionRule(
             id = "timeout_back",
-            priority = 0,
             keywords = listOf("TIMEOUT_ALL"),
             action = OcrRuleAction.Back
         )
@@ -577,12 +548,10 @@ xyz任务
 
     private fun createRule(
         id: String,
-        priority: Int,
         keywords: List<String>
     ): OcrActionRule {
         return OcrActionRule(
             id = id,
-            priority = priority,
             keywords = keywords,
             action = OcrRuleAction.Wait,
         )

@@ -15,14 +15,12 @@ class OcrRuleEngineFlowTest {
         val rules = listOf(
             OcrActionRule(
                 id = "tree_planting_list_ad",
-                priority = 0,
                 keywords = listOf("看广告视频", "看30秒广告可领水滴今日还剩num次"),
                 action = OcrRuleAction.Click(OcrClickTarget(0.5f, 0.5f)),
                 valuePolicy = OcrValuePolicy.NumericThreshold(NumericCompareOperator.GT, 0)
             ),
             OcrActionRule(
                 id = "tree_planting_list_search",
-                priority = 0,
                 keywords = listOf("浏览搜索商品", "浏览30秒可领水滴今日还剩num次"),
                 action = OcrRuleAction.Click(OcrClickTarget(0.5f, 0.6f)),
                 valuePolicy = OcrValuePolicy.NumericThreshold(NumericCompareOperator.GT, 0)
@@ -60,14 +58,12 @@ class OcrRuleEngineFlowTest {
         val rules = listOf(
             OcrActionRule(
                 id = "tree_planting_list_search",
-                priority = 0,
                 keywords = listOf("浏览搜索商品"),
                 action = OcrRuleAction.Click(OcrClickTarget(0.5f, 0.5f)),
                 timeout = OcrRuleTimeout(awaitRuleId = "timeout_back", timeoutSeconds = 40)
             ),
             OcrActionRule(
                 id = "timeout_back",
-                priority = 0,
                 keywords = listOf("TIMEOUT_ALL"),
                 action = OcrRuleAction.Back
             )
@@ -119,7 +115,6 @@ class OcrRuleEngineFlowTest {
         val rules = listOf(
             OcrActionRule(
                 id = "ad_next",
-                priority = 0,
                 keywords = listOf("num金币", "继续领奖励"),
                 action = OcrRuleAction.Click(
                     target = OcrClickTarget(0.5f, 0.5f),
@@ -154,7 +149,6 @@ class OcrRuleEngineFlowTest {
         val rules = listOf(
             OcrActionRule(
                 id = "ad_next",
-                priority = 0,
                 keywords = listOf("num金币", "继续领奖励"),
                 action = OcrRuleAction.Click(
                     target = OcrClickTarget(0.5f, 0.5f),
@@ -190,7 +184,6 @@ class OcrRuleEngineFlowTest {
         val rules = listOf(
             OcrActionRule(
                 id = "live_ad_next",
-                priority = 0,
                 keywords = listOf("再看一个视频继续领奖励", "继续领奖励", "坚持退出"),
                 action = OcrRuleAction.Click(OcrClickTarget(0.5f, 0.5f)),
                 valuePolicy = OcrValuePolicy.NumericThreshold(NumericCompareOperator.GT, 300),
@@ -230,7 +223,6 @@ class OcrRuleEngineFlowTest {
         val rules = listOf(
             OcrActionRule(
                 id = "ad_next",
-                priority = 0,
                 keywords = listOf("继续领奖励"),
                 action = OcrRuleAction.Click(OcrClickTarget(0.5f, 0.5f))
             )
@@ -303,13 +295,11 @@ class OcrRuleEngineFlowTest {
         val rules = listOf(
             OcrActionRule(
                 id = "ad_next",
-                priority = 1,
                 keywords = listOf("继续领奖励"),
                 action = OcrRuleAction.Click(OcrClickTarget(0.5f, 0.5f))
             ),
             OcrActionRule(
                 id = "ad_done",
-                priority = 0,
                 keywords = listOf("坚持退出"),
                 action = OcrRuleAction.Back
             )

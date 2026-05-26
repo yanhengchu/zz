@@ -1,18 +1,19 @@
-id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
 
-live_ad_open_12,0,0,,com.ss.android.ugc.livelite,"继续看视频得/看视频再得num金币",,CLICK,,,
-live_ad_open_3,0,0,,com.ss.android.ugc.livelite,"看广告视频再得num金币",,CLICK,,,
-live_ad_next,2,1,,com.ss.android.ugc.livelite,"num金币/num再看一个视频继续领奖励/再看一个视频继续领奖励num/再看一个视频继续领奖励|num继续领奖励/继续领奖励num/继续领奖励|坚持退出",,CLICK,,,
-aweme_ad_next,2,1,,com.ss.android.ugc.aweme.lite,"num金币/num再看一个视频额外获得/再看一个视频额外获得num/再看一个视频额外获得|num领取奖励/领取奖励num/领取奖励|坚持退出",,CLICK,,,
-
-
-live_tree_list_ad,0,0,,com.ss.android.ugc.livelite,"看广告视频|看30秒广告可领水滴今日还剩num次/看30秒广告可领水今日还剩num次",,CLICK,GT:0,,
-live_tree_list_search,0,0,com_timeout_back:40,com.ss.android.ugc.livelite,"浏览搜索商品|浏览30秒可领水滴今日还剩num次/浏览30秒可领水今日还剩num次/浏览30秒可领领水滴今日还剩num次",,CLICK,GT:0,,
-live_tree_video_swipe_1200,1,0,,com.ss.android.ugc.livelite,"农场用户专属优惠|浏览num秒得",,SWIPE,,,
-live_tree_video_swipe_1000,1,0,,com.ss.android.ugc.livelite,"浏览商品num得|下单最高再得",,SWIPE,,,
+live_ad_open_12,0,,com.ss.android.ugc.livelite,"继续看视频得/看视频再得num金币","首页",CLICK,,,
+live_ad_open_3,0,,com.ss.android.ugc.livelite,"首页|看广告视频再得num金币",,CLICK,,,
+live_ad_next,1,,com.ss.android.ugc.livelite,"num金币/num再看一个视频继续领奖励/再看一个视频继续领奖励num/再看一个视频继续领奖励|num继续领奖励/继续领奖励num/继续领奖励|坚持退出",,CLICK,,,
+aweme_ad_next,1,,com.ss.android.ugc.aweme.lite,"num金币/num再看一个视频额外获得/再看一个视频额外获得num/再看一个视频额外获得|num领取奖励/领取奖励num/领取奖励|坚持退出",,CLICK,,,
 
 
-com_ad_wait,0,1,,,"后可领取奖励/后可领奖励/浏览num秒得",,WAIT,,,
-com_ad_done,1,1,,,"成功领取奖励/领取成功/领取成成功",,BACK,,,
-com_timeout_back,0,0,,,"TIMEOUT_ALL",,BACK,,,
-com_video_swipe,0,0,,,"倒计时mm:ss",,SWIPE,UNCHANGED,,
+live_tree_list_ad,0,,com.ss.android.ugc.livelite,"看广告视频|看30秒广告可领水滴今日还剩num次/看30秒广告可领水今日还剩num次",,CLICK,GT:0,,
+live_tree_list_search,0,com_timeout_back:35,com.ss.android.ugc.livelite,"浏览搜索商品|浏览30秒可领水滴今日还剩num次/浏览30秒可领水今日还剩num次/浏览30秒可领领水滴今日还剩num次",,CLICK,GT:0,,
+live_tree_video_swipe_1200,0,,com.ss.android.ugc.livelite,"农场用户专属优惠|浏览num秒得",,SWIPE,,,
+live_tree_video_swipe_1000,0,,com.ss.android.ugc.livelite,"浏览商品num得|下单最高再得",,SWIPE,,,
+
+
+com_ad_wait,1,,,"后可领取奖励/后可领奖励/浏览num秒得",,WAIT,,,
+com_ad_done,1,,,"成功领取奖励/领取成功/领取成成功",,BACK,,,
+com_video_swipe,0,,,"倒计时mm:ss",,SWIPE,UNCHANGED,,
+com_timeout_back,0,,,"TIMEOUT_ALL",,BACK,,,
+

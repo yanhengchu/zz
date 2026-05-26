@@ -65,7 +65,6 @@ class OcrRuleTimeoutGateTest {
     ): OcrActionRule {
         return OcrActionRule(
             id = id,
-            priority = 1,
             keywords = listOf(id),
             action = OcrRuleAction.Wait,
             timeout = timeout
