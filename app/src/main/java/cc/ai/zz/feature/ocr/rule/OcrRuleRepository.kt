@@ -215,10 +215,7 @@ exp_back,0,,,"广告|领取成功",,BACK,,,
                 "BACK" -> OcrRuleAction.Back
                 "SWIPE" -> OcrRuleAction.Swipe
                 "CLICK" -> OcrRuleAction.Click(
-                    target = row["action_target"].toClickTargetOrNull() ?: run {
-                        warn("OCR CLICK rule id=$id missing action_target; use default center target")
-                        OcrClickTarget(0.5f, 0.5f)
-                    },
+                    target = row["action_target"].toClickTargetOrNull() ?: OcrClickTarget(0.5f, 0.5f),
                     elseTarget = row["else_target"].toClickTargetOrNull()
                 )
 

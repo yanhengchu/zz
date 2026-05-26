@@ -72,17 +72,13 @@ class PeriodicTaskRunner(
                 onShowCountdown(event.periodTime)
             }
 
-            is GestureStep.Back -> {
-                val executor = requireExecutor() ?: return false
-                executor.back()
-            }
         }
         return true
     }
 
     private fun scheduleNextPlanCycle(plan: GesturePlan, event: GestureEvent, sessionId: Long) {
         if (sessionId != taskSessionId) return
-        val nextDelay = GestureRuntimeResolver.resolveNextCycleDelay(plan.nextCycleDelayPolicy, event.periodTime)
+        val nextDelay = GestureRuntimeResolver.resolveNextCycleDelay(plan.nextCycleDelayPolicy)
         if (plan.nextCycleDelayPolicy is NextCycleDelayPolicy.Fixed) {
             onShowCountdown(nextDelay)
         }

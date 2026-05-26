@@ -10,7 +10,7 @@ class GesturePlanModelTest {
             name = "test-plan",
             initialDelayMs = 1_000L,
             nextCycleDelayPolicy = NextCycleDelayPolicy.Fixed(1_000L),
-            steps = listOf(GestureStep.Back())
+            steps = listOf(GestureStep.SwipeUp())
         )
 
         assertEquals(FailurePolicy.ToastOnlyContinue, plan.failurePolicy)
@@ -21,13 +21,6 @@ class GesturePlanModelTest {
         val step = GestureStep.SwipeUp()
 
         assertEquals(0L, step.delayBeforeMs)
-    }
-
-    @Test
-    fun backStep_usesProvidedDelay() {
-        val step = GestureStep.Back(delayBeforeMs = 3_000L)
-
-        assertEquals(3_000L, step.delayBeforeMs)
     }
 
     @Test

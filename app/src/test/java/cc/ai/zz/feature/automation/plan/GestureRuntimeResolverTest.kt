@@ -7,8 +7,7 @@ class GestureRuntimeResolverTest {
     @Test
     fun resolveNextCycleDelay_returnsFixedDelayForFixedPolicy() {
         val delay = GestureRuntimeResolver.resolveNextCycleDelay(
-            policy = NextCycleDelayPolicy.Fixed(2_500L),
-            eventPeriodTime = 9_000L
+            policy = NextCycleDelayPolicy.Fixed(2_500L)
         )
 
         assertEquals(2_500L, delay)

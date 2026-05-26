@@ -47,8 +47,4 @@ sealed interface GestureStep {
     data class SwipeUp(
         override val delayBeforeMs: Long = 0L
     ) : GestureStep
-
-    data class Back(
-        override val delayBeforeMs: Long = 0L
-    ) : GestureStep
 }
