@@ -16,7 +16,6 @@ import cc.ai.zz.feature.automation.command.GestureEvent
 import cc.ai.zz.feature.automation.executor.AccessibilityGestureExecutor
 import cc.ai.zz.feature.automation.executor.GestureAccessibilityService
 import cc.ai.zz.feature.automation.plan.GesturePlanFactory
-import cc.ai.zz.feature.overlay.manager.ContinuousClickFloatingWindowManager
 import cc.ai.zz.feature.overlay.manager.FloatingWindowManager
 import cc.ai.zz.feature.ocr.coordinator.OcrCoordinator
 import com.hjq.toast.Toaster
@@ -34,11 +33,8 @@ class GestureService : Service() {
         @Volatile
         var isPeriodicTaskActive = false
             private set
-        @Volatile
-        var isContinuousClickActive = false
-            private set
 
-        fun hasRunningWork(): Boolean = isOcrActive || isPeriodicTaskActive || isContinuousClickActive
+        fun hasRunningWork(): Boolean = isOcrActive || isPeriodicTaskActive
     }
 
     private val handler = Handler(Looper.getMainLooper())
@@ -56,8 +52,6 @@ class GestureService : Service() {
             executorProvider = {
                 GestureAccessibilityService.instance?.let(::AccessibilityGestureExecutor)
             },
-            floatingPositionProvider = { FloatingWindowManager.getMainPosition() },
-            onShowMessage = { Toaster.show(it) },
             onShowCountdown = { FloatingWindowManager.updateTimeLimit(it) },
             onAccessibilityLost = {
                 isPeriodicTaskActive = false
@@ -67,21 +61,6 @@ class GestureService : Service() {
             onPrepareOverlay = { FloatingWindowManager.tryShow(it) }
         )
     }
-    private val continuousClickRunner by lazy {
-        ContinuousClickRunner(
-            executorProvider = {
-                GestureAccessibilityService.instance?.let(::AccessibilityGestureExecutor)
-            },
-            floatingPositionProvider = { ContinuousClickFloatingWindowManager.getClickAnchorPosition() },
-            onShowMessage = { Toaster.show(it) },
-            onAccessibilityLost = {
-                isContinuousClickActive = false
-                ContinuousClickFloatingWindowManager.updateActive(false)
-                Toaster.show("无障碍不可用，已停止连点")
-            }
-        )
-    }
-
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "service created")
@@ -149,22 +128,11 @@ class GestureService : Service() {
                 ensureForegroundService(resolveForegroundServiceType())
                 startPeriodicSwipeUp(gestureEvent)
             }
-            GestureEvent.ACT_CLICK_BACK -> {
-                ensureForegroundService(resolveForegroundServiceType())
-                startPeriodicClickBack(gestureEvent)
-            }
             GestureEvent.ACT_START_OCR -> {
                 // startForegroundService() 启动后必须先在时限内进入前台；
                 // 等拿到有效授权并完成初始化后，再升级为 mediaProjection 类型。
                 ensureForegroundService(ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
                 startOcr(intent)
-            }
-            GestureEvent.ACT_TOGGLE_CONTINUOUS_CLICK -> {
-                ensureForegroundService(resolveForegroundServiceType())
-                toggleContinuousClick()
-            }
-            GestureEvent.ACT_STOP_CONTINUOUS_CLICK -> {
-                stopContinuousClick()
             }
             null -> {
                 Log.w(TAG, "ignore start command because gestureEvent is missing")
@@ -186,25 +154,8 @@ class GestureService : Service() {
         periodicTaskRunner.stop()
         isPeriodicTaskActive = false
         ocrCoordinator.stop()
-        stopContinuousClick()
         FloatingWindowManager.tryHide()
         isOcrActive = false
-    }
-
-    private fun toggleContinuousClick() {
-        if (continuousClickRunner.isActive) {
-            stopContinuousClick()
-        } else {
-            continuousClickRunner.start()
-            isContinuousClickActive = true
-            ContinuousClickFloatingWindowManager.updateActive(true)
-        }
-    }
-
-    private fun stopContinuousClick() {
-        continuousClickRunner.stop()
-        isContinuousClickActive = false
-        ContinuousClickFloatingWindowManager.updateActive(false)
     }
 
     private fun startPeriodicSwipeUp(event: GestureEvent?) {
@@ -213,22 +164,14 @@ class GestureService : Service() {
         periodicTaskRunner.start(event, GesturePlanFactory.buildSwipeUpPlan(event))
     }
 
-    private fun startPeriodicClickBack(event: GestureEvent?) {
-        event ?: return
-        isPeriodicTaskActive = true
-        periodicTaskRunner.start(event, GesturePlanFactory.buildClickBackPlan(event))
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "service destroyed")
         handler.removeCallbacksAndMessages(null)
         periodicTaskRunner.release()
-        continuousClickRunner.release()
         ocrCoordinator.release()
         isOcrActive = false
         isPeriodicTaskActive = false
-        isContinuousClickActive = false
         isInForeground = false
         currentForegroundServiceType = null
     }

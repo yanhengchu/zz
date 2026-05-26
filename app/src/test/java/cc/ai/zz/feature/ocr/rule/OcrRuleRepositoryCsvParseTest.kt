@@ -51,6 +51,33 @@ exp_exclude,0,,com.demo.app,"看视频再得num金币","首页|直播间",CLICK,
     }
 
     @Test
+    fun parseCsvRules_ignoresDeprecatedPriorityColumnAndKeepsCsvOrder() {
+        val rules = OcrRuleRepository.parseCsvRules(
+            """
+id,priority,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+first,0,0,,,"第一条",,WAIT,,,
+second,99,0,,,"第二条",,WAIT,,,
+            """.trimIndent()
+        )
+
+        assertEquals(listOf("first", "second"), rules.map { it.id })
+    }
+
+    @Test
+    fun parseCsvRules_usesCenterTargetWhenClickTargetIsMissing() {
+        val rules = OcrRuleRepository.parseCsvRules(
+            """
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+click_missing_target,0,,,"点击",,CLICK,,,
+            """.trimIndent()
+        )
+
+        val action = rules.single().action as OcrRuleAction.Click
+        assertEquals(0.5f, action.target.xRatio)
+        assertEquals(0.5f, action.target.yRatio)
+    }
+
+    @Test
     fun parseCsvConfusions_parsesCanonicalCharacterMappings() {
         val confusions = OcrRuleRepository.parseCsvConfusions(
             """

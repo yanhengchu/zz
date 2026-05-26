@@ -16,6 +16,8 @@ class OcrRuleRepository(
         private const val CLEAN_CONFIG_ASSET_PATH = "ocr_clean_config.csv"
         private const val EXTERNAL_RULES_DIR = "ocr"
         private const val EXTERNAL_RULES_FILE_NAME = "ocr_rules.override.csv"
+        private val REQUIRED_RULE_COLUMNS = setOf("id", "keywords", "action_type")
+        private val REQUIRED_PATCH_COLUMNS = setOf("id")
         private const val EXTERNAL_RULES_TEMPLATE = """
 id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
 exp_back,0,,,"广告|领取成功",,BACK,,,
@@ -62,6 +64,7 @@ exp_back,0,,,"广告|领取成功",,BACK,,,
             if (lines.isEmpty()) return emptyList()
             val header = parseCsvLine(lines.first()).map { it.trim().lowercase() }
             if (header.isEmpty()) return emptyList()
+            validateCsvHeader(header, REQUIRED_RULE_COLUMNS, "rules")
             return buildList {
                 lines.drop(1).forEach { line ->
                     val values = parseCsvLine(line)
@@ -82,6 +85,7 @@ exp_back,0,,,"广告|领取成功",,BACK,,,
             if (lines.isEmpty()) return emptyList()
             val header = parseCsvLine(lines.first()).map { it.trim().lowercase() }
             if (header.isEmpty()) return emptyList()
+            validateCsvHeader(header, REQUIRED_PATCH_COLUMNS, "rule patches")
             return buildList {
                 lines.drop(1).forEach { line ->
                     val values = parseCsvLine(line)
@@ -175,7 +179,7 @@ exp_back,0,,,"广告|领取成功",,BACK,,,
             if (id.isEmpty()) return null
             val keywords = row["keywords"].splitPipeList()
             if (keywords.isEmpty()) return null
-            val action = parseCsvAction(row) ?: return null
+            val action = parseCsvAction(id, row) ?: return null
             return OcrActionRule(
                 id = id,
                 packages = row["pkg"].splitPipeList(),
@@ -205,17 +209,38 @@ exp_back,0,,,"广告|领取成功",,BACK,,,
             )
         }
 
-        private fun parseCsvAction(row: Map<String, String>): OcrRuleAction? {
+        private fun parseCsvAction(id: String, row: Map<String, String>): OcrRuleAction? {
             return when (row["action_type"].orEmpty().trim().uppercase()) {
                 "WAIT" -> OcrRuleAction.Wait
                 "BACK" -> OcrRuleAction.Back
                 "SWIPE" -> OcrRuleAction.Swipe
                 "CLICK" -> OcrRuleAction.Click(
-                    target = row["action_target"].toClickTargetOrNull() ?: OcrClickTarget(0.5f, 0.5f),
+                    target = row["action_target"].toClickTargetOrNull() ?: run {
+                        warn("OCR CLICK rule id=$id missing action_target; use default center target")
+                        OcrClickTarget(0.5f, 0.5f)
+                    },
                     elseTarget = row["else_target"].toClickTargetOrNull()
                 )
 
                 else -> null
+            }
+        }
+
+        private fun validateCsvHeader(header: List<String>, requiredColumns: Set<String>, label: String) {
+            val missingColumns = requiredColumns.filter { it !in header }
+            if (missingColumns.isNotEmpty()) {
+                warn("OCR $label CSV missing required columns: ${missingColumns.joinToString(",")}")
+            }
+            if ("priority" in header) {
+                warn("OCR $label CSV column priority is deprecated and ignored; rule order follows CSV order")
+            }
+        }
+
+        private fun warn(message: String) {
+            try {
+                Log.w(TAG, message)
+            } catch (_: RuntimeException) {
+                // Android Log is unavailable in local JVM tests.
             }
         }
 

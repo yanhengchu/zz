@@ -21,16 +21,7 @@ data class GesturePlan(
  * 决定一轮步骤执行结束后，下一轮应该在多久之后开始。
  */
 sealed interface NextCycleDelayPolicy {
-    /**
-     * 下一轮间隔取当前 event.periodTime。
-     * 适合像上滑这样会在执行过程中动态调整下一轮周期的动作。
-     */
-    data object UseEventPeriodTime : NextCycleDelayPolicy
-
-    /**
-     * 下一轮间隔固定为某个值。
-     * 适合像点击后返回这样分阶段固定推进的动作。
-     */
+    /** 下一轮间隔固定为某个值。 */
     data class Fixed(val delayMs: Long) : NextCycleDelayPolicy
 }
 
@@ -48,20 +39,13 @@ sealed interface FailurePolicy {
 /**
  * GestureStep 描述单轮任务中的一个步骤。
  *
- * delayBeforeMs 表示执行当前步骤前需要等待多久，
- * 这样可以把“点击后等待一段时间再返回”这种两阶段动作也表示成一组步骤。
+ * delayBeforeMs 表示执行当前步骤前需要等待多久。
  */
 sealed interface GestureStep {
     val delayBeforeMs: Long
 
     data class SwipeUp(
         override val delayBeforeMs: Long = 0L
-    ) : GestureStep
-
-    data class ClickFromFloatingWindow(
-        override val delayBeforeMs: Long = 0L,
-        val offsetX: Int = -10,
-        val offsetY: Int = -10
     ) : GestureStep
 
     data class Back(

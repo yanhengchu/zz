@@ -18,14 +18,14 @@ class GestureEventTest {
     @Test
     fun gestureEvent_preservesProvidedValues() {
         val event = GestureEvent(
-            action = GestureEvent.ACT_CLICK_BACK,
+            action = GestureEvent.ACT_BACK,
             startTime = 5_000L,
             periodTime = 7_500L,
             x = 120.5f,
             y = 300.25f
         )
 
-        assertEquals(GestureEvent.ACT_CLICK_BACK, event.action)
+        assertEquals(GestureEvent.ACT_BACK, event.action)
         assertEquals(5_000L, event.startTime)
         assertEquals(7_500L, event.periodTime)
         assertEquals(120.5f, event.x)
@@ -39,9 +39,6 @@ class GestureEventTest {
         assertEquals("ACT_STOP", GestureEvent.ACT_STOP)
         assertEquals("ACT_BACK", GestureEvent.ACT_BACK)
         assertEquals("ACT_SWIPE_UP", GestureEvent.ACT_SWIPE_UP)
-        assertEquals("ACT_CLICK_BACK", GestureEvent.ACT_CLICK_BACK)
         assertEquals("ACT_START_OCR", GestureEvent.ACT_START_OCR)
-        assertEquals("ACT_TOGGLE_CONTINUOUS_CLICK", GestureEvent.ACT_TOGGLE_CONTINUOUS_CLICK)
-        assertEquals("ACT_STOP_CONTINUOUS_CLICK", GestureEvent.ACT_STOP_CONTINUOUS_CLICK)
     }
 }

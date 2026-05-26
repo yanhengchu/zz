@@ -1,6 +1,5 @@
 package cc.ai.zz.feature.automation.service
 
-import android.graphics.Point
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -14,8 +13,6 @@ import kotlinx.coroutines.Runnable
 
 class PeriodicTaskRunner(
     private val executorProvider: () -> GestureExecutor?,
-    private val floatingPositionProvider: () -> Point?,
-    private val onShowMessage: (String) -> Unit,
     private val onShowCountdown: (Long) -> Unit,
     private val onAccessibilityLost: () -> Unit,
     private val onPrepareOverlay: (Long) -> Unit
@@ -73,18 +70,6 @@ class PeriodicTaskRunner(
                 event.periodTime = event.startTime
                 executor.swipeUp()
                 onShowCountdown(event.periodTime)
-            }
-
-            is GestureStep.ClickFromFloatingWindow -> {
-                val executor = requireExecutor() ?: return false
-                val pos = floatingPositionProvider()
-                if (pos == null) {
-                    onShowMessage("点击位置不可用，跳过本轮点击")
-                    return true
-                }
-                val clickPosition = GestureRuntimeResolver.resolveClickPosition(pos.x, pos.y, step)
-                executor.click(clickPosition.x, clickPosition.y)
-                onShowCountdown(event.startTime)
             }
 
             is GestureStep.Back -> {

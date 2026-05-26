@@ -138,31 +138,6 @@
                 android:textSize="13sp"/>
 
         <Button
-                android:id="@+id/btnToggleContinuousClick"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="18dp"
-                android:background="@drawable/bg_action_click"
-                android:paddingStart="18dp"
-                android:paddingEnd="18dp"
-                android:text="连点"
-                android:textAllCaps="false"
-                android:textColor="@color/action_text"
-                android:textSize="17sp"
-                android:textStyle="bold"
-                android:visibility="gone"/>
-
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:layout_marginTop="8dp"
-                android:text="显示 on/off 连点悬浮按钮，开启后每 50 ms 点击一次。"
-                android:textColor="@color/subtle_text"
-                android:textSize="13sp"
-                android:visibility="gone"/>
-
-        <Button
                 android:id="@+id/btnStartOcr"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"

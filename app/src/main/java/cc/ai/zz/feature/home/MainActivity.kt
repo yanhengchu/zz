@@ -13,7 +13,6 @@ import cc.ai.zz.feature.automation.command.GestureEvent
 import cc.ai.zz.feature.automation.command.emit
 import cc.ai.zz.feature.automation.executor.GestureAccessibilityService
 import cc.ai.zz.feature.automation.service.GestureService
-import cc.ai.zz.feature.overlay.manager.ContinuousClickFloatingWindowManager
 import cc.ai.zz.feature.overlay.manager.CoordinateLocatorFloatingWindowManager
 import cc.ai.zz.feature.overlay.manager.FloatingWindowManager
 import cc.ai.zz.feature.ocr.rule.OcrRuleRepository
@@ -56,7 +55,6 @@ class MainActivity : ComponentActivity() {
         setIntent(intent)
         syncPageState()
         syncCoordinateLocatorButton()
-        syncContinuousClickButton()
         syncHomeInfo()
     }
 
@@ -105,16 +103,6 @@ class MainActivity : ComponentActivity() {
             }
             requestProjectionThenStartOcr()
         }
-        findViewById<android.widget.Button>(R.id.btnToggleContinuousClick).setOnClickListener {
-            if (!ensureAccessibilityReady()) return@setOnClickListener
-            if (!ensureOverlayPermissionForFixedTask()) return@setOnClickListener
-            if (ContinuousClickFloatingWindowManager.isShowing()) {
-                ContinuousClickFloatingWindowManager.tryHide()
-            } else {
-                ContinuousClickFloatingWindowManager.tryShow()
-            }
-            syncContinuousClickButton()
-        }
         findViewById<android.widget.Button>(R.id.btnToggleCoordinateLocator).setOnClickListener {
             if (!ensureOverlayPermissionForFixedTask()) return@setOnClickListener
             if (CoordinateLocatorFloatingWindowManager.isShowing()) {
@@ -125,7 +113,6 @@ class MainActivity : ComponentActivity() {
             syncCoordinateLocatorButton()
         }
         syncCoordinateLocatorButton()
-        syncContinuousClickButton()
     }
 
     private fun requestProjectionThenStartOcr() {
@@ -136,7 +123,6 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         syncCoordinateLocatorButton()
-        syncContinuousClickButton()
         syncHomeInfo()
     }
 
@@ -146,15 +132,6 @@ class MainActivity : ComponentActivity() {
             "隐藏坐标定位"
         } else {
             "定位屏幕坐标"
-        }
-    }
-
-    private fun syncContinuousClickButton() {
-        val button = findViewById<android.widget.Button>(R.id.btnToggleContinuousClick)
-        button.text = if (ContinuousClickFloatingWindowManager.isShowing()) {
-            "隐藏连点"
-        } else {
-            "连点"
         }
     }
 

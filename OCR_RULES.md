@@ -183,6 +183,13 @@ video_swipe,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
 - `TIMEOUT_ALL`：只在对应 `timeout` 已触发时才会命中，普通 OCR 轮次不会直接命中
 - `timeout` 当前语义是“源规则执行成功后，等待目标规则在后续轮次命中”；不是“时间一到立刻直接执行动作”
 
+## 4.2 CSV 结构提示
+
+- 规则加载时会检查关键列，缺少 `id / keywords / action_type` 会写 warning 日志
+- 分辨率覆盖和外部 override 至少需要 `id` 列
+- 如果旧外部 CSV 仍包含已废弃的 `priority` 列，会写 warning 日志并忽略这一列
+- `CLICK` 规则如果没有配置 `action_target`，会写 warning 日志并临时使用屏幕中心点 `0.5:0.5`
+
 ## 5. 动作类型
 
 - `WAIT`：不执行任何操作，继续等待下一轮 OCR

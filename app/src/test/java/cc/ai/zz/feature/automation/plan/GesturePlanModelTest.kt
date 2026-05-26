@@ -9,7 +9,7 @@ class GesturePlanModelTest {
         val plan = GesturePlan(
             name = "test-plan",
             initialDelayMs = 1_000L,
-            nextCycleDelayPolicy = NextCycleDelayPolicy.UseEventPeriodTime,
+            nextCycleDelayPolicy = NextCycleDelayPolicy.Fixed(1_000L),
             steps = listOf(GestureStep.Back())
         )
 
@@ -21,15 +21,6 @@ class GesturePlanModelTest {
         val step = GestureStep.SwipeUp()
 
         assertEquals(0L, step.delayBeforeMs)
-    }
-
-    @Test
-    fun clickFromFloatingWindowStep_hasExpectedDefaults() {
-        val step = GestureStep.ClickFromFloatingWindow()
-
-        assertEquals(0L, step.delayBeforeMs)
-        assertEquals(-10, step.offsetX)
-        assertEquals(-10, step.offsetY)
     }
 
     @Test
