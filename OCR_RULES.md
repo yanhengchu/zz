@@ -10,6 +10,7 @@
 - [ocr_clean_config.csv](/Users/aschu/IdeaProjects/zz/app/src/main/assets/ocr_clean_config.csv) 当前只从 `assets` 内置加载，不能像外部实验规则一样在手机上直接修改；如果要调整过滤文案或清洗字符，需要重新打包/安装
 - 外部实验规则优先使用 `/sdcard/Android/data/cc.ai.zz/files/ocr/ocr_rules.override.csv`
 - 加载顺序是：先读默认内置规则，再按当前分辨率尝试读取同名覆盖文件；如果没有精确命中，会按当前 `w/h` 选择一份比例最接近的分辨率覆盖文件；最后再读外部 CSV；如果 `id` 相同，后加载的规则覆盖前面的规则
+- 外部 CSV 会整体排在内置规则之后；如果外部 CSV 覆盖了已有 `id`，这条规则会移动到外部 CSV 所在顺序，方便用外部文件调整优先级
 - 应用启动时会自动创建外部 CSV 覆盖文件，方便直接用 Excel / WPS 编辑
 - 内置默认规则、分辨率覆盖规则和外部实验规则统一维护 CSV，列结构保持一致
 
@@ -35,7 +36,7 @@
 
 - 需要排查某条规则时，再补 `log`
 - 点击类规则，再补 `action_target`
-- 规则有冲突时，直接调整 CSV 上下顺序；越靠上越先匹配
+- 规则有冲突时，直接调整同一份 CSV 内的上下顺序；越靠上越先匹配。外部 CSV 会排在内置规则之后，但外部覆盖已有 `id` 时也会按外部 CSV 顺序重新参与匹配
 
 如果只是临时加一条实验规则，推荐先按最小写法配置，其他字段都可以省略，系统会走默认值。
 
@@ -138,7 +139,7 @@ video_swipe,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
 ## 3. 顶层结构
 
 - CSV 没有 `rules` 顶层，直接一行一条规则。
-- 规则按 CSV 自上而下匹配；更具体、更希望优先生效的规则放在更上面。
+- 规则按最终合并后的顺序自上而下匹配；同一份 CSV 里更具体、更希望优先生效的规则放在更上面。
 
 ## 4. 规则字段说明
 
@@ -171,7 +172,7 @@ video_swipe,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
 
 ## 4.1 当前执行流程
 
-- 每轮 OCR 会按 CSV 当前顺序自上而下逐条做 `keywords` 匹配
+- 每轮 OCR 会按最终合并后的规则顺序自上而下逐条做 `keywords` 匹配
 - 某条规则 `keywords` 命中后，会先检查 `exclude_keywords`
 - 如果任意排除词命中，这条规则视为不匹配，继续尝试后续规则
 - 如果没有排除词命中，再继续做 `value_policy` 判断
@@ -186,9 +187,10 @@ video_swipe,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
 ## 4.2 CSV 结构提示
 
 - 规则加载时会检查关键列，缺少 `id / keywords / action_type` 会写 warning 日志
-- 分辨率覆盖和外部 override 至少需要 `id` 列
+- 分辨率覆盖至少需要 `id` 列
+- 外部 override 是完整规则，通常需要 `id / keywords / action_type`；如果缺少关键列，会写 warning 日志，无法解析成有效规则
 - 如果旧外部 CSV 仍包含已废弃的 `priority` 列，会写 warning 日志并忽略这一列
-- `CLICK` 规则如果没有配置 `action_target`，会写 warning 日志并临时使用屏幕中心点 `0.5:0.5`
+- `CLICK` 规则如果没有配置 `action_target`，会使用屏幕中心点 `0.5:0.5`；常用默认规则一般由分辨率覆盖文件补充点击坐标
 
 ## 5. 动作类型
 

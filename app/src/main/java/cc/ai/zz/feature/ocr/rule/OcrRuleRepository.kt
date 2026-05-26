@@ -30,7 +30,10 @@ exp_back,0,,,"广告|领取成功",,BACK,,,
             if (externalRules.isEmpty()) return bundledRules
             val mergedById = linkedMapOf<String, OcrActionRule>()
             bundledRules.forEach { rule -> mergedById[rule.id] = rule }
-            externalRules.forEach { rule -> mergedById[rule.id] = rule }
+            externalRules.forEach { rule ->
+                mergedById.remove(rule.id)
+                mergedById[rule.id] = rule
+            }
             return mergedById.values.toList()
         }
 

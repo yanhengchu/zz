@@ -46,6 +46,28 @@ class OcrRuleRepositoryMergeTest {
     }
 
     @Test
+    fun mergeRules_movesExternalOverridesToExternalCsvOrder() {
+        val bundledRules = listOf(
+            createRule(id = "first"),
+            createRule(id = "second"),
+            createRule(id = "third")
+        )
+        val externalRules = listOf(
+            createRule(id = "third", keywords = listOf("外部第三")),
+            createRule(id = "first", keywords = listOf("外部第一"))
+        )
+
+        val mergedRules = OcrRuleRepository.mergeRules(
+            bundledRules = bundledRules,
+            externalRules = externalRules
+        )
+
+        assertEquals(listOf("second", "third", "first"), mergedRules.map { it.id })
+        assertEquals(listOf("外部第三"), mergedRules[1].keywords)
+        assertEquals(listOf("外部第一"), mergedRules[2].keywords)
+    }
+
+    @Test
     fun mergeRules_externalSwipeRuleOverridesBundledRuleAndKeepsAliasKeywords() {
         val bundledRule = createRule(id = "video_swipe")
         val externalRule = OcrActionRule(

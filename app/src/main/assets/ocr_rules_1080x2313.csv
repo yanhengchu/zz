@@ -1,9 +1,10 @@
 id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
 
-live_ad_open_12,,,,,,,,0.50:0.66,
+live_ad_open_1,,,,,,,,0.50:0.66,
+live_ad_open_2,,,,,,,,0.50:0.66,
 live_ad_open_3,,,,,,,,0.50:0.60,
-live_ad_next,,,,,,,,0.50:0.58,
-aweme_ad_next,,,,,,,,0.50:0.57,
+live_ad_next,,,,,,,,0.50:0.58,0.50:0.64
+aweme_ad_next,,,,,,,,0.50:0.57,0.50:0.63
 
 
 live_tree_list_ad,,,,,,,,0.87:0.65,

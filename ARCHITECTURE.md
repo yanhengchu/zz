@@ -56,10 +56,10 @@ metadata:
 
 - [app/src/main/java/cc/ai/zz/feature/home/MainActivity.kt](/Users/aschu/IdeaProjects/zz/app/src/main/java/cc/ai/zz/feature/home/MainActivity.kt)
   - 展示操作中心页面
-  - 触发固定间隔的上滑或点击任务
+  - 触发固定间隔的上滑任务
   - 发起 `MediaProjection` 授权并开启 OCR
   - 切换坐标定位悬浮窗，辅助读取 `CLICK` 所需的屏幕比例坐标
-  - 当前上滑和点击任务都不默认绑定 OCR；后续新增场景时再按场景要求决定是否绑定
+  - 当前固定上滑任务不默认绑定 OCR；后续新增场景时再按场景要求决定是否绑定
   - 在页面打开时停止当前周期任务并隐藏主悬浮窗，这是当前设计上的显式停止机制
   - 页面打开时只处理通知权限；无障碍状态在真正发起相关操作时再检查和引导
 
