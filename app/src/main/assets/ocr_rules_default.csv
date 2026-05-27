@@ -3,7 +3,8 @@ id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_tar
 live_ad_page,0,,com.ss.android.ugc.livelite,"金币购物|做任务赚全币|全部任务|金币膨胀兑券|天天兑券","首页",CLICK_SEQUENCE,,,
 live_ad_open_1,0,,com.ss.android.ugc.livelite,"看视频再得num金币",,CLICK,,,
 live_ad_open_2,0,,com.ss.android.ugc.livelite,"继续看视频得num金币",,CLICK,,,
-live_ad_open_3,0,,com.ss.android.ugc.livelite,"看广告视频再得num金币",,CLICK,,,
+live_ad_open_3,0,,com.ss.android.ugc.livelite,"首页|看广告视频再得num金币",,CLICK,,,
+live_ad_open_4,0,,com.ss.android.ugc.livelite,"看广告视频再得num金币",,CLICK,,,
 live_ad_next,0,,com.ss.android.ugc.livelite,"num金币/num再看一个视频继续领奖励/再看一个视频继续领奖励num/再看一个视频继续领奖励|num继续领奖励/继续领奖励num/继续领奖励|坚持退出",,CLICK,GT:100,,
 aweme_ad_next,0,,com.ss.android.ugc.aweme.lite,"num金币/num再看一个视频额外获得/再看一个视频额外获得num/再看一个视频额外获得|num领取奖励/领取奖励num/领取奖励|坚持退出",,CLICK,GT:100,,
 
