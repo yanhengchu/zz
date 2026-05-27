@@ -39,7 +39,7 @@ class OcrRuleEngineFlowTest {
                 executedRuleIds += rule.id
                 true
             },
-            logClickDecision = { _, _, _ -> },
+            logClickDecision = { _, _, _, _, _ -> },
             onLog = { }
         )
 
@@ -81,7 +81,7 @@ class OcrRuleEngineFlowTest {
                 executedRuleIds += rule.id
                 true
             },
-            logClickDecision = { _, _, _ -> },
+            logClickDecision = { _, _, _, _, _ -> },
             onLog = { }
         )
         nowMs += 40_000L
@@ -97,7 +97,7 @@ class OcrRuleEngineFlowTest {
                 executedRuleIds += rule.id
                 true
             },
-            logClickDecision = { _, _, _ -> },
+            logClickDecision = { _, _, _, _, _ -> },
             onLog = { }
         )
 
@@ -133,7 +133,7 @@ class OcrRuleEngineFlowTest {
             actionCooldownGate = actionCooldownGate,
             dynamicValueGate = dynamicValueGate,
             executeRule = { _, _ -> true },
-            logClickDecision = { _, _, _ -> },
+            logClickDecision = { _, _, _, _, _ -> },
             onLog = { }
         )
 
@@ -167,7 +167,7 @@ class OcrRuleEngineFlowTest {
             actionCooldownGate = actionCooldownGate,
             dynamicValueGate = dynamicValueGate,
             executeRule = { _, _ -> true },
-            logClickDecision = { _, _, _ -> },
+            logClickDecision = { _, _, _, _, _ -> },
             onLog = { }
         )
 
@@ -201,7 +201,7 @@ class OcrRuleEngineFlowTest {
             actionCooldownGate = actionCooldownGate,
             dynamicValueGate = dynamicValueGate,
             executeRule = { _, _ -> true },
-            logClickDecision = { _, _, _ -> },
+            logClickDecision = { _, _, _, _, _ -> },
             onLog = logs::add
         )
 
@@ -240,7 +240,7 @@ class OcrRuleEngineFlowTest {
                 executedRuleIds += rule.id
                 true
             },
-            logClickDecision = { _, _, _ -> },
+            logClickDecision = { _, _, _, _, _ -> },
             onLog = { }
         )
 
@@ -257,7 +257,7 @@ class OcrRuleEngineFlowTest {
                 executedRuleIds += rule.id
                 true
             },
-            logClickDecision = { _, _, _ -> },
+            logClickDecision = { _, _, _, _, _ -> },
             onLog = { }
         )
 
@@ -274,7 +274,7 @@ class OcrRuleEngineFlowTest {
                 executedRuleIds += rule.id
                 true
             },
-            logClickDecision = { _, _, _ -> },
+            logClickDecision = { _, _, _, _, _ -> },
             onLog = { }
         )
 
@@ -282,6 +282,175 @@ class OcrRuleEngineFlowTest {
         assertEquals("skip:ad_next", second.status)
         assertEquals("ad_next", third.status)
         assertEquals(listOf("ad_next", "ad_next"), executedRuleIds)
+    }
+
+    @Test
+    fun handleRecognizedTextWithRules_advancesClickSequenceAfterSuccessfulExecution() {
+        var nowMs = 1_000L
+        val matcher = OcrRuleMatcher()
+        val timeoutGate = OcrRuleTimeoutGate()
+        val actionCooldownGate = OcrActionCooldownGate(nowProvider = { nowMs })
+        val clickSequenceGate = OcrClickSequenceGate()
+        val dynamicValueGate = OcrDynamicValueGate()
+        val clickedTargets = mutableListOf<OcrClickTarget?>()
+        val rules = listOf(
+            OcrActionRule(
+                id = "seq_buttons",
+                keywords = listOf("任务页"),
+                action = OcrRuleAction.ClickSequence(
+                    targets = listOf(
+                        OcrClickTarget(0.10f, 0.20f),
+                        OcrClickTarget(0.30f, 0.40f)
+                    )
+                )
+            )
+        )
+
+        repeat(3) {
+            handleRecognizedTextWithRules(
+                rules = rules,
+                packageName = "",
+                text = "任务页",
+                matcher = matcher,
+                timeoutGate = timeoutGate,
+                actionCooldownGate = actionCooldownGate,
+                clickSequenceGate = clickSequenceGate,
+                dynamicValueGate = dynamicValueGate,
+                executeRule = { _, clickTarget ->
+                    clickedTargets += clickTarget
+                    true
+                },
+                logClickDecision = { _, _, _, _, _ -> },
+                onLog = { }
+            )
+            nowMs += 5_000L
+        }
+
+        assertEquals(listOf(0.10f, 0.30f, 0.10f), clickedTargets.map { it?.xRatio })
+        assertEquals(listOf(0.20f, 0.40f, 0.20f), clickedTargets.map { it?.yRatio })
+    }
+
+    @Test
+    fun handleRecognizedTextWithRules_doesNotAdvanceClickSequenceAfterFailedExecution() {
+        var nowMs = 1_000L
+        val matcher = OcrRuleMatcher()
+        val timeoutGate = OcrRuleTimeoutGate()
+        val actionCooldownGate = OcrActionCooldownGate(nowProvider = { nowMs })
+        val clickSequenceGate = OcrClickSequenceGate()
+        val dynamicValueGate = OcrDynamicValueGate()
+        val clickedTargets = mutableListOf<OcrClickTarget?>()
+        val rules = listOf(
+            OcrActionRule(
+                id = "seq_buttons",
+                keywords = listOf("任务页"),
+                action = OcrRuleAction.ClickSequence(
+                    targets = listOf(
+                        OcrClickTarget(0.10f, 0.20f),
+                        OcrClickTarget(0.30f, 0.40f)
+                    )
+                )
+            )
+        )
+
+        handleRecognizedTextWithRules(
+            rules = rules,
+            packageName = "",
+            text = "任务页",
+            matcher = matcher,
+            timeoutGate = timeoutGate,
+            actionCooldownGate = actionCooldownGate,
+            clickSequenceGate = clickSequenceGate,
+            dynamicValueGate = dynamicValueGate,
+            executeRule = { _, clickTarget ->
+                clickedTargets += clickTarget
+                false
+            },
+            logClickDecision = { _, _, _, _, _ -> },
+            onLog = { }
+        )
+
+        nowMs += 5_000L
+        handleRecognizedTextWithRules(
+            rules = rules,
+            packageName = "",
+            text = "任务页",
+            matcher = matcher,
+            timeoutGate = timeoutGate,
+            actionCooldownGate = actionCooldownGate,
+            clickSequenceGate = clickSequenceGate,
+            dynamicValueGate = dynamicValueGate,
+            executeRule = { _, clickTarget ->
+                clickedTargets += clickTarget
+                true
+            },
+            logClickDecision = { _, _, _, _, _ -> },
+            onLog = { }
+        )
+
+        assertEquals(listOf(0.10f, 0.10f), clickedTargets.map { it?.xRatio })
+        assertEquals(listOf(0.20f, 0.20f), clickedTargets.map { it?.yRatio })
+    }
+
+    @Test
+    fun handleRecognizedTextWithRules_blocksRepeatedClickSequenceWithinCooldownWindow() {
+        var nowMs = 1_000L
+        val matcher = OcrRuleMatcher()
+        val timeoutGate = OcrRuleTimeoutGate()
+        val actionCooldownGate = OcrActionCooldownGate(nowProvider = { nowMs })
+        val clickSequenceGate = OcrClickSequenceGate()
+        val dynamicValueGate = OcrDynamicValueGate()
+        val clickedTargets = mutableListOf<OcrClickTarget?>()
+        val rules = listOf(
+            OcrActionRule(
+                id = "seq_buttons",
+                keywords = listOf("任务页"),
+                action = OcrRuleAction.ClickSequence(
+                    targets = listOf(
+                        OcrClickTarget(0.10f, 0.20f),
+                        OcrClickTarget(0.30f, 0.40f)
+                    )
+                )
+            )
+        )
+
+        val first = handleRecognizedTextWithRules(
+            rules = rules,
+            packageName = "",
+            text = "任务页",
+            matcher = matcher,
+            timeoutGate = timeoutGate,
+            actionCooldownGate = actionCooldownGate,
+            clickSequenceGate = clickSequenceGate,
+            dynamicValueGate = dynamicValueGate,
+            executeRule = { _, clickTarget ->
+                clickedTargets += clickTarget
+                true
+            },
+            logClickDecision = { _, _, _, _, _ -> },
+            onLog = { }
+        )
+
+        nowMs += 2_000L
+        val second = handleRecognizedTextWithRules(
+            rules = rules,
+            packageName = "",
+            text = "任务页",
+            matcher = matcher,
+            timeoutGate = timeoutGate,
+            actionCooldownGate = actionCooldownGate,
+            clickSequenceGate = clickSequenceGate,
+            dynamicValueGate = dynamicValueGate,
+            executeRule = { _, clickTarget ->
+                clickedTargets += clickTarget
+                true
+            },
+            logClickDecision = { _, _, _, _, _ -> },
+            onLog = { }
+        )
+
+        assertEquals("seq_buttons/seq1", first.status)
+        assertEquals("skip:seq_buttons", second.status)
+        assertEquals(listOf(0.10f), clickedTargets.map { it?.xRatio })
     }
 
     @Test
@@ -317,7 +486,7 @@ class OcrRuleEngineFlowTest {
                 executedRuleIds += rule.id
                 true
             },
-            logClickDecision = { _, _, _ -> },
+            logClickDecision = { _, _, _, _, _ -> },
             onLog = { }
         )
 
@@ -334,7 +503,7 @@ class OcrRuleEngineFlowTest {
                 executedRuleIds += rule.id
                 true
             },
-            logClickDecision = { _, _, _ -> },
+            logClickDecision = { _, _, _, _, _ -> },
             onLog = { }
         )
 

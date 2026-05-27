@@ -143,6 +143,61 @@ ad_next,,,,,,,,0.48:0.55,0.48:0.61
     }
 
     @Test
+    fun mergeRulePatches_overridesClickSequenceTargets() {
+        val baseRule = OcrActionRule(
+            id = "seq_buttons",
+            keywords = listOf("任务页"),
+            action = OcrRuleAction.ClickSequence(
+                targets = listOf(
+                    OcrClickTarget(0.10f, 0.20f),
+                    OcrClickTarget(0.30f, 0.40f)
+                )
+            )
+        )
+
+        val patches = OcrRuleRepository.parseCsvRulePatches(
+            """
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+seq_buttons,,,,,,,,0.50:0.60|0.70:0.80,
+            """.trimIndent()
+        )
+
+        val mergedRule = OcrRuleRepository.mergeRulePatches(listOf(baseRule), patches).single()
+        val action = mergedRule.action as OcrRuleAction.ClickSequence
+
+        assertEquals(2, action.targets.size)
+        assertEquals(0.50f, action.targets[0].xRatio)
+        assertEquals(0.60f, action.targets[0].yRatio)
+        assertEquals(0.70f, action.targets[1].xRatio)
+        assertEquals(0.80f, action.targets[1].yRatio)
+    }
+
+    @Test
+    fun parseAndMergeRulePatches_allowsDefaultClickSequenceTargetToBeBlank() {
+        val baseRules = OcrRuleRepository.parseCsvRules(
+            """
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+seq_buttons,0,,,"任务页",,CLICK_SEQUENCE,,,
+            """.trimIndent()
+        )
+        val patches = OcrRuleRepository.parseCsvRulePatches(
+            """
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+seq_buttons,,,,,,,,0.08:0.33|0.22:0.33,
+            """.trimIndent()
+        )
+
+        val mergedRule = OcrRuleRepository.mergeRulePatches(baseRules, patches).single()
+        val action = mergedRule.action as OcrRuleAction.ClickSequence
+
+        assertEquals(2, action.targets.size)
+        assertEquals(0.08f, action.targets[0].xRatio)
+        assertEquals(0.33f, action.targets[0].yRatio)
+        assertEquals(0.22f, action.targets[1].xRatio)
+        assertEquals(0.33f, action.targets[1].yRatio)
+    }
+
+    @Test
     fun resolveClosestResolutionRulesAssetPath_prefersExactMatch() {
         val path = OcrRuleRepository.resolveClosestResolutionRulesAssetPath(
             width = 1172,

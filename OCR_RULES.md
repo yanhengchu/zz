@@ -133,6 +133,7 @@ id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_tar
 ad_wait,0,,,"广告|后可领奖励",,WAIT,,,
 ad_back,1,,,"广告|领取成功",,BACK,,,
 ad_next,0,,,"广告|领取成功|再看一个视频继续领奖励","首页",CLICK,LT:300,0.48:0.56,0.82:0.56
+task_buttons,0,,,"任务页",,CLICK_SEQUENCE,,0.50:0.42|0.50:0.52|0.50:0.62,
 video_swipe,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
 ```
 
@@ -158,7 +159,7 @@ video_swipe,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
   语法和 `keywords` 相同，同样支持 `|` 分隔多个排除项、`/` 别名、`mm:ss`、`num`、`ALL`
   常见用法：`keywords=继续看视频得/看视频再得num金币` 且 `exclude_keywords=首页`，表示不在首页时才执行
 - `action_type`：命中后的执行动作类型
-- `action_target`：仅 `CLICK` 时需要填写的主点击比例坐标，格式 `x:y`
+- `action_target`：`CLICK` 时填写主点击比例坐标，格式 `x:y`；`CLICK_SEQUENCE` 时填写多个坐标，格式 `x:y|x:y|x:y`
 - `else_target`：仅 `CLICK` 时可选；当数值阈值条件不满足时使用的备用点击坐标，格式 `x:y`
 - `value_policy`：可选；当前支持动态时间比较和数值阈值比较
 
@@ -191,6 +192,7 @@ video_swipe,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
 - 外部 override 是完整规则，通常需要 `id / keywords / action_type`；如果缺少关键列，会写 warning 日志，无法解析成有效规则
 - 如果旧外部 CSV 仍包含已废弃的 `priority` 列，会写 warning 日志并忽略这一列
 - `CLICK` 规则如果没有配置 `action_target`，会使用屏幕中心点 `0.5:0.5`；常用默认规则一般由分辨率覆盖文件补充点击坐标
+- `CLICK_SEQUENCE` 建议配置至少一个有效 `action_target` 坐标；多个坐标用 `|` 分隔。默认规则可以留空，再由分辨率覆盖文件补坐标
 
 ## 5. 动作类型
 
@@ -198,6 +200,7 @@ video_swipe,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
 - `BACK`：执行一次返回操作
 - `SWIPE`：执行一次上滑操作
 - `CLICK`：按屏幕比例点击指定位置
+- `CLICK_SEQUENCE`：同一条规则配置多个点击坐标，每次命中只点击一个，成功后推进到下一个，走到末尾后回到第一个
 
 ## 5.1 动态时间比较
 
@@ -230,7 +233,8 @@ video_swipe,0,,,"首页|倒计时mm:ss/倒计吋mm:ss",,SWIPE,UNCHANGED,,
 示例：
 
 ```csv
-ad_next,2,,1,"再看一个视频继续领奖励|num金币|继续领奖励/领取奖励|坚持退出",CLICK,0.50:0.56,0.82:0.56,GT:300
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+ad_next,0,,,"再看一个视频继续领奖励|num金币|继续领奖励/领取奖励|坚持退出",,CLICK,GT:300,0.50:0.56,0.82:0.56
 ```
 
 当前项目的默认口径：
@@ -239,11 +243,28 @@ ad_next,2,,1,"再看一个视频继续领奖励|num金币|继续领奖励/领取
 - 不满足条件且配置了 `else_target` 时，走 `else_target`
 - 如果 `num` 没有成功提取出来，当前会回退到普通执行，也就是默认走 `action_target`
 
+## 5.3 轮询点击序列
+
+- `CLICK_SEQUENCE` 适合“同一个页面上有三四个位置需要轮询点击”的场景
+- 每轮 OCR 最多点击序列里的一个坐标，不会在同一轮里连续点击多个按钮
+- 只有动作执行成功后，序列才会推进；如果无障碍不可用或点击失败，下次仍会尝试当前坐标
+- 序列状态按 `rule.id` 维护，OCR 停止、重启或规则重新加载后会从第一个坐标重新开始
+- `CLICK_SEQUENCE` 复用现有 OCR 动作冷却，当前同一条规则成功点击后 5 秒内再次命中会被跳过
+- 分辨率覆盖文件也可以只覆盖 `action_target`，用于给不同设备维护不同坐标序列
+
+示例：
+
+```csv
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+task_buttons,0,,com.demo.app,"任务页",,CLICK_SEQUENCE,,0.50:0.42|0.50:0.52|0.50:0.62,
+```
+
 ## 6. CLICK 字段
 
 - `action_target` / `else_target` 格式都是 `x:y`
 - `x`：点击横坐标占屏幕宽度的比例，建议范围 `0.0 ~ 1.0`
 - `y`：点击纵坐标占屏幕高度的比例，建议范围 `0.0 ~ 1.0`
+- `CLICK_SEQUENCE` 的 `action_target` 是多个 `x:y` 坐标拼接，例如 `0.50:0.42|0.50:0.52|0.50:0.62`
 
 示例：
 

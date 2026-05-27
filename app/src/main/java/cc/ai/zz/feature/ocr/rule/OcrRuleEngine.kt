@@ -22,11 +22,13 @@ class OcrRuleEngine(
     private val dynamicValueGate = OcrDynamicValueGate()
     private val timeoutGate = OcrRuleTimeoutGate()
     private val actionCooldownGate = OcrActionCooldownGate()
+    private val clickSequenceGate = OcrClickSequenceGate()
     private val actionExecutor = OcrActionExecutor(executorProvider, onShowMessage)
     private var rules: List<OcrActionRule> = emptyList()
 
     fun reloadRules() {
         rules = repository.loadRules()
+        clickSequenceGate.reset()
         textCleaner = OcrTextCleaner(repository.loadCleanConfig())
         matcher = OcrRuleMatcher(repository.loadConfusions(), textCleaner)
         val externalPath = repository.resolveExternalRulesFile()?.absolutePath
@@ -41,6 +43,7 @@ class OcrRuleEngine(
         dynamicValueGate.reset()
         timeoutGate.reset()
         actionCooldownGate.reset()
+        clickSequenceGate.reset()
     }
 
     fun handleRecognizedText(
@@ -59,9 +62,10 @@ class OcrRuleEngine(
             matcher = matcher,
             timeoutGate = timeoutGate,
             actionCooldownGate = actionCooldownGate,
+            clickSequenceGate = clickSequenceGate,
             dynamicValueGate = dynamicValueGate,
-            executeRule = { rule, useElseTarget ->
-                actionExecutor.execute(rule, useElseTarget)
+            executeRule = { rule, clickTarget ->
+                actionExecutor.execute(rule, clickTarget)
             },
             logClickDecision = ::logClickDecision,
             onLog = { message -> Log.d(TAG, message) }
@@ -77,9 +81,16 @@ internal fun handleRecognizedTextWithRules(
     matcher: OcrRuleMatcher,
     timeoutGate: OcrRuleTimeoutGate,
     actionCooldownGate: OcrActionCooldownGate,
+    clickSequenceGate: OcrClickSequenceGate = OcrClickSequenceGate(),
     dynamicValueGate: OcrDynamicValueGate,
-    executeRule: (rule: OcrActionRule, useElseTarget: Boolean) -> Boolean,
-    logClickDecision: (rule: OcrActionRule, match: OcrRuleMatcher.OcrRuleMatch, decision: OcrDynamicValueGate.Decision) -> Unit,
+    executeRule: (rule: OcrActionRule, clickTarget: OcrClickTarget?) -> Boolean,
+    logClickDecision: (
+        rule: OcrActionRule,
+        match: OcrRuleMatcher.OcrRuleMatch,
+        decision: OcrDynamicValueGate.Decision,
+        clickTarget: OcrClickTarget?,
+        sequenceIndex: Int?
+    ) -> Unit,
     onLog: (String) -> Unit = {}
 ): OcrRuleHandleResult {
     val activeRules = timeoutGate.filterActiveRules(rules)
@@ -115,7 +126,9 @@ internal fun handleRecognizedTextWithRules(
             }
         }
         val decision = dynamicValueGate.evaluate(match)
-        logClickDecision(rule, match, decision)
+        val sequenceTarget = clickSequenceGate.resolveTarget(rule)
+        val clickTarget = rule.resolveClickTarget(decision, sequenceTarget)
+        logClickDecision(rule, match, decision, clickTarget, sequenceTarget?.index)
         dynamicValueGate.observe(decision)
         if (!decision.shouldExecute) {
             onLog(
@@ -127,10 +140,11 @@ internal fun handleRecognizedTextWithRules(
             onLog("skip OCR action by cooldown rule=${rule.id}")
             return@selectRuleInOrder OcrRuleTraversalResult.Skip(rule.id)
         }
-        val executed = executeRule(rule, decision.useElseTarget)
+        val executed = executeRule(rule, clickTarget)
         dynamicValueGate.onActionResult(decision, executed)
         timeoutGate.onRuleExecuted(rule, executed)
         actionCooldownGate.onRuleExecuted(rule, executed)
+        clickSequenceGate.onRuleExecuted(rule, executed)
         if (!executed) {
             onLog(
                 "mark OCR dynamic value as pending because action did not execute rule=${rule.id} current=${match.dynamicValue}"
@@ -139,7 +153,7 @@ internal fun handleRecognizedTextWithRules(
         }
         OcrRuleTraversalResult.Execute(
             ruleId = rule.id,
-            displayStatus = rule.toDisplayStatus(decision)
+            displayStatus = rule.toDisplayStatus(decision, sequenceTarget)
         )
     }
     return when (selection) {
@@ -154,16 +168,14 @@ internal fun handleRecognizedTextWithRules(
 private fun OcrRuleEngine.logClickDecision(
     rule: OcrActionRule,
     match: OcrRuleMatcher.OcrRuleMatch,
-    decision: OcrDynamicValueGate.Decision
+    decision: OcrDynamicValueGate.Decision,
+    clickTarget: OcrClickTarget?,
+    sequenceIndex: Int?
 ) {
-    val clickAction = rule.action as? OcrRuleAction.Click
-    if (clickAction == null) return
+    if (rule.action !is OcrRuleAction.Click && rule.action !is OcrRuleAction.ClickSequence) return
     val displayMetrics = MyApp.context.resources.displayMetrics
     val screenSize = "${displayMetrics.widthPixels}x${displayMetrics.heightPixels}"
-    val selectedTarget = when {
-        decision.useElseTarget -> clickAction.elseTarget?.let { "${it.xRatio}:${it.yRatio}" } ?: "none"
-        else -> "${clickAction.target.xRatio}:${clickAction.target.yRatio}"
-    }
+    val selectedTarget = clickTarget?.let { "${it.xRatio}:${it.yRatio}" } ?: "none"
     val extracted = when {
         rule.valuePolicy is OcrValuePolicy.NumericThreshold && match.dynamicValue == null -> "missing"
         match.dynamicValue != null -> match.dynamicValue
@@ -177,7 +189,7 @@ private fun OcrRuleEngine.logClickDecision(
     }
     Log.d(
         OCR_RULE_ENGINE_TAG,
-        "ocr click decision rule=${rule.id} screen=$screenSize extracted=$extracted policy=$policy useElseTarget=${decision.useElseTarget} target=$selectedTarget"
+        "ocr click decision rule=${rule.id} screen=$screenSize extracted=$extracted policy=$policy useElseTarget=${decision.useElseTarget} sequenceIndex=${sequenceIndex ?: "none"} target=$selectedTarget"
     )
 }
 
@@ -212,8 +224,27 @@ internal fun <T> selectRuleInOrder(
     return lastSkipped
 }
 
-private fun OcrActionRule.toDisplayStatus(decision: OcrDynamicValueGate.Decision): String {
-    val clickAction = action as? OcrRuleAction.Click ?: return id
-    if (clickAction.elseTarget == null) return id
-    return if (decision.useElseTarget) "$id/else" else "$id/action"
+private fun OcrActionRule.resolveClickTarget(
+    decision: OcrDynamicValueGate.Decision,
+    sequenceTarget: OcrClickSequenceGate.IndexedTarget?
+): OcrClickTarget? {
+    return when (val currentAction = action) {
+        is OcrRuleAction.Click -> if (decision.useElseTarget) currentAction.elseTarget else currentAction.target
+        is OcrRuleAction.ClickSequence -> sequenceTarget?.target
+        else -> null
+    }
+}
+
+private fun OcrActionRule.toDisplayStatus(
+    decision: OcrDynamicValueGate.Decision,
+    sequenceTarget: OcrClickSequenceGate.IndexedTarget?
+): String {
+    return when (val currentAction = action) {
+        is OcrRuleAction.Click -> {
+            if (currentAction.elseTarget == null) id else if (decision.useElseTarget) "$id/else" else "$id/action"
+        }
+
+        is OcrRuleAction.ClickSequence -> "$id/seq${sequenceTarget?.index?.plus(1) ?: 0}"
+        else -> id
+    }
 }

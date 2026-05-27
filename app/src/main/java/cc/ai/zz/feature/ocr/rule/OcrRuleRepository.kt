@@ -205,6 +205,7 @@ exp_back,0,,,"广告|领取成功",,BACK,,,
                 excludeKeywords = row["exclude_keywords"].toNullablePipeList(),
                 actionType = row["action_type"].orEmpty().trim().uppercase().ifEmpty { null },
                 actionTarget = row["action_target"].toClickTargetOrNull(),
+                actionTargets = row["action_target"].toClickTargetsOrNull(),
                 elseTarget = row["else_target"].toClickTargetOrNull(),
                 valuePolicy = row["value_policy"]?.trim().toOcrValuePolicyOrNull(),
                 timeout = row["timeout"]?.trim().toOcrRuleTimeoutOrNull(),
@@ -220,6 +221,9 @@ exp_back,0,,,"广告|领取成功",,BACK,,,
                 "CLICK" -> OcrRuleAction.Click(
                     target = row["action_target"].toClickTargetOrNull() ?: OcrClickTarget(0.5f, 0.5f),
                     elseTarget = row["else_target"].toClickTargetOrNull()
+                )
+                "CLICK_SEQUENCE" -> OcrRuleAction.ClickSequence(
+                    targets = row["action_target"].toClickTargetsOrNull() ?: listOf(OcrClickTarget(0.5f, 0.5f))
                 )
 
                 else -> null
@@ -330,6 +334,15 @@ exp_back,0,,,"广告|领取成功",,BACK,,,
             val x = parts[0].trim().toFloatOrNull() ?: return null
             val y = parts[1].trim().toFloatOrNull() ?: return null
             return OcrClickTarget(x, y)
+        }
+
+        private fun String?.toClickTargetsOrNull(): List<OcrClickTarget>? {
+            val raw = this.orEmpty().trim()
+            if (raw.isEmpty()) return null
+            return raw
+                .split('|')
+                .mapNotNull { it.toClickTargetOrNull() }
+                .takeIf { it.isNotEmpty() }
         }
 
         private fun String?.toBooleanFlag(): Boolean {
@@ -521,6 +534,7 @@ internal data class OcrActionRulePatch(
     val excludeKeywords: List<String>? = null,
     val actionType: String? = null,
     val actionTarget: OcrClickTarget? = null,
+    val actionTargets: List<OcrClickTarget>? = null,
     val elseTarget: OcrClickTarget? = null,
     val valuePolicy: OcrValuePolicy? = null,
     val timeout: OcrRuleTimeout? = null,
@@ -546,6 +560,9 @@ private fun OcrRuleAction.applyPatch(patch: OcrActionRulePatch): OcrRuleAction {
                 target = patch.actionTarget ?: target,
                 elseTarget = patch.elseTarget ?: elseTarget
             )
+            is OcrRuleAction.ClickSequence -> copy(
+                targets = patch.actionTargets ?: targets
+            )
 
             else -> this
         }
@@ -559,6 +576,11 @@ private fun OcrRuleAction.applyPatch(patch: OcrActionRulePatch): OcrRuleAction {
                 target = patch.actionTarget ?: baseClick?.target ?: OcrClickTarget(0.5f, 0.5f),
                 elseTarget = patch.elseTarget ?: baseClick?.elseTarget
             )
+        }
+        "CLICK_SEQUENCE" -> {
+            val baseSequence = this as? OcrRuleAction.ClickSequence
+            val targets = patch.actionTargets ?: baseSequence?.targets ?: listOf(OcrClickTarget(0.5f, 0.5f))
+            OcrRuleAction.ClickSequence(targets)
         }
 
         else -> this

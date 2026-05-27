@@ -78,6 +78,38 @@ click_missing_target,0,,,"点击",,CLICK,,,
     }
 
     @Test
+    fun parseCsvRules_parsesClickSequenceTargets() {
+        val rules = OcrRuleRepository.parseCsvRules(
+            """
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+seq_buttons,0,,,"任务页",,CLICK_SEQUENCE,,0.10:0.20|0.30:0.40|0.50:0.60,
+            """.trimIndent()
+        )
+
+        val action = rules.single().action as OcrRuleAction.ClickSequence
+        assertEquals(3, action.targets.size)
+        assertEquals(0.10f, action.targets[0].xRatio)
+        assertEquals(0.20f, action.targets[0].yRatio)
+        assertEquals(0.50f, action.targets[2].xRatio)
+        assertEquals(0.60f, action.targets[2].yRatio)
+    }
+
+    @Test
+    fun parseCsvRules_usesCenterTargetWhenClickSequenceTargetIsMissing() {
+        val rules = OcrRuleRepository.parseCsvRules(
+            """
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+seq_missing_target,0,,,"任务页",,CLICK_SEQUENCE,,,
+            """.trimIndent()
+        )
+
+        val action = rules.single().action as OcrRuleAction.ClickSequence
+        assertEquals(1, action.targets.size)
+        assertEquals(0.5f, action.targets.single().xRatio)
+        assertEquals(0.5f, action.targets.single().yRatio)
+    }
+
+    @Test
     fun parseCsvConfusions_parsesCanonicalCharacterMappings() {
         val confusions = OcrRuleRepository.parseCsvConfusions(
             """

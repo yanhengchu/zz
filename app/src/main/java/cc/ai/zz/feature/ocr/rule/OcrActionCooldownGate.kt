@@ -27,6 +27,6 @@ class OcrActionCooldownGate(
     }
 
     private fun OcrRuleAction.requiresCooldown(): Boolean {
-        return this is OcrRuleAction.Click || this is OcrRuleAction.Back
+        return this is OcrRuleAction.Click || this is OcrRuleAction.ClickSequence || this is OcrRuleAction.Back
     }
 }

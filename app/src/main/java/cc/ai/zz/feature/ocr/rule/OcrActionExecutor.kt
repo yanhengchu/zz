@@ -8,7 +8,7 @@ class OcrActionExecutor(
     private val executorProvider: () -> GestureExecutor?,
     private val onShowMessage: (String) -> Unit
 ) {
-    fun execute(rule: OcrActionRule, useElseTarget: Boolean = false): Boolean {
+    fun execute(rule: OcrActionRule, clickTargetOverride: OcrClickTarget? = null): Boolean {
         return when (val action = rule.action) {
             OcrRuleAction.Wait -> true
             OcrRuleAction.Back -> {
@@ -25,7 +25,15 @@ class OcrActionExecutor(
 
             is OcrRuleAction.Click -> {
                 val executor = requireExecutor() ?: return false
-                val clickTarget = if (useElseTarget) action.elseTarget ?: return false else action.target
+                val clickTarget = clickTargetOverride ?: action.target
+                val position = resolveRatioClickPosition(clickTarget)
+                executor.click(position.x, position.y)
+                true
+            }
+
+            is OcrRuleAction.ClickSequence -> {
+                val executor = requireExecutor() ?: return false
+                val clickTarget = clickTargetOverride ?: return false
                 val position = resolveRatioClickPosition(clickTarget)
                 executor.click(position.x, position.y)
                 true

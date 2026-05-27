@@ -61,6 +61,10 @@ sealed interface OcrRuleAction {
         val target: OcrClickTarget,
         val elseTarget: OcrClickTarget? = null
     ) : OcrRuleAction
+
+    data class ClickSequence(
+        val targets: List<OcrClickTarget>
+    ) : OcrRuleAction
 }
 
 data class OcrRuleHandleResult(
