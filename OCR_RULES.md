@@ -11,7 +11,7 @@
 - 外部实验规则优先使用 `/sdcard/Android/data/cc.ai.zz/files/ocr/ocr_rules.override.csv`
 - 加载顺序是：先读默认内置规则，再按当前分辨率尝试读取同名覆盖文件；如果没有精确命中，会按当前 `w/h` 选择一份比例最接近的分辨率覆盖文件；最后再读外部 CSV；如果 `id` 相同，后加载的规则覆盖前面的规则
 - 外部 CSV 会整体排在内置规则之后；如果外部 CSV 覆盖了已有 `id`，这条规则会移动到外部 CSV 所在顺序，方便用外部文件调整优先级
-- 应用启动时会自动创建外部 CSV 覆盖文件，方便直接用 Excel / WPS 编辑
+- 应用启动时会自动创建只包含表头的外部 CSV 覆盖文件，方便直接用 Excel / WPS 编辑；不会默认写入任何会生效的示例规则
 - 内置默认规则、分辨率覆盖规则和外部实验规则统一维护 CSV，列结构保持一致
 
 当前分辨率覆盖规则的口径是：
@@ -46,7 +46,7 @@ CSV 外部实验规则推荐这样写：
 
 ```csv
 id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
-exp_back,0,,,"广告|领取成功",,BACK,,,
+exp_demo,0,,,"广告|领取成功",,BACK,,,
 ```
 
 说明：
@@ -109,7 +109,7 @@ drop_line_exact,"完整过滤文案"
 
 ```csv
 id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
-exp_back,0,,,"广告|领取成功",,BACK,,,
+exp_demo,0,,,"广告|领取成功",,BACK,,,
 ```
 
 分辨率覆盖示例：

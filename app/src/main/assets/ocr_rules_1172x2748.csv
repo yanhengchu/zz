@@ -1,6 +1,6 @@
 id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
 
-live_ad_page,,,,,,,,0.08:0.33|0.22:0.33|0.50:0.33|0.92:0.33,
+live_ad_page,,,,,,,,0.08:0.31|0.22:0.33|0.50:0.33|0.92:0.33,
 live_ad_open_1,,,,,,,,0.50:0.61,
 live_ad_open_2,,,,,,,,0.50:0.61,
 live_ad_open_3,,,,,,,,0.50:0.58,

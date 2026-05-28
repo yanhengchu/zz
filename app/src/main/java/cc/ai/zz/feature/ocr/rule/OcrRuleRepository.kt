@@ -20,7 +20,6 @@ class OcrRuleRepository(
         private val REQUIRED_PATCH_COLUMNS = setOf("id")
         private const val EXTERNAL_RULES_TEMPLATE = """
 id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
-exp_back,0,,,"广告|领取成功",,BACK,,,
 """
 
         internal fun mergeRules(
