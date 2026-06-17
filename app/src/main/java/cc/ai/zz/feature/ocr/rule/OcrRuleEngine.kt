@@ -183,6 +183,7 @@ private fun OcrRuleEngine.logClickDecision(
     }
     val policy = when (val valuePolicy = rule.valuePolicy) {
         is OcrValuePolicy.NumericThreshold -> "${valuePolicy.operator}:${valuePolicy.threshold}"
+        is OcrValuePolicy.RuntimeNumericThreshold -> "${valuePolicy.operator}:${valuePolicy.key}"
         OcrValuePolicy.Changed -> "CHANGED"
         OcrValuePolicy.Unchanged -> "UNCHANGED"
         null -> "none"

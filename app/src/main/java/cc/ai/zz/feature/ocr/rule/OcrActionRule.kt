@@ -25,6 +25,11 @@ sealed interface OcrValuePolicy {
         val operator: NumericCompareOperator,
         val threshold: Int
     ) : OcrValuePolicy
+
+    data class RuntimeNumericThreshold(
+        val operator: NumericCompareOperator,
+        val key: String
+    ) : OcrValuePolicy
 }
 
 enum class NumericCompareOperator {

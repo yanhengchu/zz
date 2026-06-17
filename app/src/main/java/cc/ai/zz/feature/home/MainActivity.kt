@@ -11,19 +11,16 @@ import cc.ai.zz.R
 import cc.ai.zz.core.permission.NotificationPermissionController
 import cc.ai.zz.feature.automation.command.GestureEvent
 import cc.ai.zz.feature.automation.command.emit
+import cc.ai.zz.feature.automation.config.SwipeRuntimeConfig
 import cc.ai.zz.feature.automation.executor.GestureAccessibilityService
 import cc.ai.zz.feature.automation.service.GestureService
 import cc.ai.zz.feature.overlay.manager.CoordinateLocatorFloatingWindowManager
 import cc.ai.zz.feature.overlay.manager.FloatingWindowManager
+import cc.ai.zz.feature.ocr.config.OcrRuntimeConfig
 import cc.ai.zz.feature.ocr.rule.OcrRuleRepository
 import com.hjq.toast.Toaster
 
 class MainActivity : ComponentActivity() {
-    companion object {
-        private const val SWIPE_UP_FIXED_PERIOD_MS = 3_000L
-        private const val SWIPE_UP_SLOW_FIXED_PERIOD_MS = 50_000L
-    }
-
     private val ocrRuleRepository by lazy { OcrRuleRepository(this) }
 
     private val mediaProjectionLauncher =
@@ -87,14 +84,9 @@ class MainActivity : ComponentActivity() {
         findViewById<android.widget.Button>(R.id.btnStartSwipeUp).setOnClickListener {
             if (!ensureAccessibilityReady()) return@setOnClickListener
             if (!ensureOverlayPermissionForFixedTask()) return@setOnClickListener
-            GestureEvent.ACT_SWIPE_UP.emit(startTime = SWIPE_UP_FIXED_PERIOD_MS)
-        }
-        findViewById<android.widget.Button>(R.id.btnStartSlowSwipeUp).setOnClickListener {
-            if (!ensureAccessibilityReady()) return@setOnClickListener
-            if (!ensureOverlayPermissionForFixedTask()) return@setOnClickListener
             // 当前固定节奏上滑任务不默认绑定 OCR；
             // 后续如果某个新场景需要边执行边识别，再在该场景入口上显式补 OCR 绑定逻辑。
-            GestureEvent.ACT_SWIPE_UP.emit(startTime = SWIPE_UP_SLOW_FIXED_PERIOD_MS)
+            GestureEvent.ACT_SWIPE_UP.emit(startTime = SwipeRuntimeConfig.getPeriodMs(this))
         }
         findViewById<android.widget.Button>(R.id.btnStartOcr).setOnClickListener {
             if (!ensureAccessibilityReady()) return@setOnClickListener
@@ -112,7 +104,59 @@ class MainActivity : ComponentActivity() {
             }
             syncCoordinateLocatorButton()
         }
+        initSwipePeriodSelector()
+        initAdNextThresholdSelector()
         syncCoordinateLocatorButton()
+    }
+
+    private fun initSwipePeriodSelector() {
+        val group = findViewById<android.widget.RadioGroup>(R.id.groupSwipePeriod)
+        group.check(SwipeRuntimeConfig.getPeriodMs(this).toSwipePeriodRadioButtonId())
+        group.setOnCheckedChangeListener { _, checkedId ->
+            SwipeRuntimeConfig.setPeriodMs(this, checkedId.toSwipePeriodMs())
+        }
+    }
+
+    private fun Long.toSwipePeriodRadioButtonId(): Int {
+        return when (this) {
+            10_000L -> R.id.radioSwipePeriod10s
+            30_000L -> R.id.radioSwipePeriod30s
+            50_000L -> R.id.radioSwipePeriod50s
+            else -> R.id.radioSwipePeriod3s
+        }
+    }
+
+    private fun Int.toSwipePeriodMs(): Long {
+        return when (this) {
+            R.id.radioSwipePeriod10s -> 10_000L
+            R.id.radioSwipePeriod30s -> 30_000L
+            R.id.radioSwipePeriod50s -> 50_000L
+            else -> SwipeRuntimeConfig.DEFAULT_PERIOD_MS
+        }
+    }
+
+    private fun initAdNextThresholdSelector() {
+        val group = findViewById<android.widget.RadioGroup>(R.id.groupAdNextThreshold)
+        group.check(OcrRuntimeConfig.getAdNextThreshold(this).toAdNextThresholdRadioButtonId())
+        group.setOnCheckedChangeListener { _, checkedId ->
+            OcrRuntimeConfig.setAdNextThreshold(this, checkedId.toAdNextThreshold())
+        }
+    }
+
+    private fun Int.toAdNextThresholdRadioButtonId(): Int {
+        return when (this) {
+            200 -> R.id.radioAdNextThreshold200
+            300 -> R.id.radioAdNextThreshold300
+            else -> R.id.radioAdNextThreshold100
+        }
+    }
+
+    private fun Int.toAdNextThreshold(): Int {
+        return when (this) {
+            R.id.radioAdNextThreshold200 -> 200
+            R.id.radioAdNextThreshold300 -> 300
+            else -> OcrRuntimeConfig.DEFAULT_AD_NEXT_THRESHOLD
+        }
     }
 
     private fun requestProjectionThenStartOcr() {

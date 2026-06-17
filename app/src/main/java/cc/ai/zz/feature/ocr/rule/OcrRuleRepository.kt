@@ -2,6 +2,7 @@ package cc.ai.zz.feature.ocr.rule
 
 import android.content.Context
 import android.util.Log
+import cc.ai.zz.feature.ocr.config.OcrRuntimeConfig
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -55,6 +56,28 @@ id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_tar
                     Log.w(TAG, "ignored OCR resolution override for unknown rule id=${patch.id}")
                 }
             return mergedRules
+        }
+
+        internal fun resolveRuntimeValuePolicies(
+            rules: List<OcrActionRule>,
+            adNextThreshold: Int
+        ): List<OcrActionRule> {
+            val normalizedAdNextThreshold = adNextThreshold
+                .takeIf { it in OcrRuntimeConfig.AD_NEXT_THRESHOLD_OPTIONS }
+                ?: OcrRuntimeConfig.DEFAULT_AD_NEXT_THRESHOLD
+            return rules.map { rule ->
+                val runtimePolicy = rule.valuePolicy as? OcrValuePolicy.RuntimeNumericThreshold ?: return@map rule
+                val threshold = when (runtimePolicy.key) {
+                    OcrRuntimeConfig.AD_NEXT_THRESHOLD_KEY -> normalizedAdNextThreshold
+                    else -> return@map rule
+                }
+                rule.copy(
+                    valuePolicy = OcrValuePolicy.NumericThreshold(
+                        operator = runtimePolicy.operator,
+                        threshold = threshold
+                    )
+                )
+            }
         }
 
         internal fun parseCsvRules(rawCsv: String): List<OcrActionRule> {
@@ -310,7 +333,7 @@ id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_tar
             return OcrRuleTimeout(awaitRuleId = awaitRuleId, timeoutSeconds = timeoutSeconds)
         }
 
-        private fun String.toNumericThresholdPolicyOrNull(): OcrValuePolicy.NumericThreshold? {
+        private fun String.toNumericThresholdPolicyOrNull(): OcrValuePolicy? {
             val parts = split(':', limit = 2)
             if (parts.size != 2) return null
             val operator = when (parts[0].trim().uppercase()) {
@@ -321,7 +344,11 @@ id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_tar
                 "EQ" -> NumericCompareOperator.EQ
                 else -> return null
             }
-            val threshold = parts[1].trim().toIntOrNull() ?: return null
+            val thresholdText = parts[1].trim()
+            if (thresholdText.equals(OcrRuntimeConfig.AD_NEXT_THRESHOLD_KEY, ignoreCase = true)) {
+                return OcrValuePolicy.RuntimeNumericThreshold(operator, OcrRuntimeConfig.AD_NEXT_THRESHOLD_KEY)
+            }
+            val threshold = thresholdText.toIntOrNull() ?: return null
             return OcrValuePolicy.NumericThreshold(operator, threshold)
         }
 
@@ -391,7 +418,11 @@ id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_tar
     fun loadRules(): List<OcrActionRule> {
         val bundledRules = loadBundledRules()
         val externalRules = loadExternalRules()
-        return mergeRules(bundledRules, externalRules)
+        val mergedRules = mergeRules(bundledRules, externalRules)
+        return resolveRuntimeValuePolicies(
+            rules = mergedRules,
+            adNextThreshold = OcrRuntimeConfig.getAdNextThreshold(context)
+        )
     }
 
     fun loadConfusions(): Map<Char, Char> {

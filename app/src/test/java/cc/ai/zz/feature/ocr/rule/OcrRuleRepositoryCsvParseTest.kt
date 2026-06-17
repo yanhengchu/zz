@@ -51,6 +51,21 @@ exp_exclude,0,,com.demo.app,"看视频再得num金币","首页|直播间",CLICK,
     }
 
     @Test
+    fun parseCsvRules_parsesRuntimeNumericThreshold() {
+        val rules = OcrRuleRepository.parseCsvRules(
+            """
+id,log,timeout,pkg,keywords,exclude_keywords,action_type,value_policy,action_target,else_target
+live_ad_next,0,,,"num金币|继续领奖励",,CLICK,GT:AD_NEXT_THRESHOLD,0.50:0.56,0.82:0.56
+            """.trimIndent()
+        )
+
+        assertEquals(
+            OcrValuePolicy.RuntimeNumericThreshold(NumericCompareOperator.GT, "AD_NEXT_THRESHOLD"),
+            rules.single().valuePolicy
+        )
+    }
+
+    @Test
     fun parseCsvRules_ignoresDeprecatedPriorityColumnAndKeepsCsvOrder() {
         val rules = OcrRuleRepository.parseCsvRules(
             """

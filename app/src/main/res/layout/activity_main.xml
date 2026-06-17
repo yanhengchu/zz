@@ -105,35 +105,58 @@
                 android:textSize="17sp"
                 android:textStyle="bold"/>
 
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:layout_marginTop="8dp"
-                android:text="固定 3 秒节奏循环上滑，适合连续翻页。"
-                android:textColor="@color/subtle_text"
-                android:textSize="13sp"/>
-
-        <Button
-                android:id="@+id/btnStartSlowSwipeUp"
+        <RadioGroup
+                android:id="@+id/groupSwipePeriod"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="18dp"
-                android:background="@drawable/bg_action_click"
-                android:paddingStart="18dp"
-                android:paddingEnd="18dp"
-                android:text="开始上滑"
-                android:textAllCaps="false"
-                android:textColor="@color/action_text"
-                android:textSize="17sp"
-                android:textStyle="bold"/>
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_marginTop="10dp"
+                android:checkedButton="@id/radioSwipePeriod3s"
+                android:orientation="horizontal">
+
+            <RadioButton
+                    android:id="@+id/radioSwipePeriod3s"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="3秒"
+                    android:textColor="@color/headline"
+                    android:textSize="14sp"/>
+
+            <RadioButton
+                    android:id="@+id/radioSwipePeriod10s"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="10秒"
+                    android:textColor="@color/headline"
+                    android:textSize="14sp"/>
+
+            <RadioButton
+                    android:id="@+id/radioSwipePeriod30s"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="30秒"
+                    android:textColor="@color/headline"
+                    android:textSize="14sp"/>
+
+            <RadioButton
+                    android:id="@+id/radioSwipePeriod50s"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="50秒"
+                    android:textColor="@color/headline"
+                    android:textSize="14sp"/>
+        </RadioGroup>
 
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:layout_marginTop="8dp"
-                android:text="固定 50 秒节奏循环上滑，适合低频刷新。"
+                android:text="按所选节奏持续循环上滑，适合连续翻页或低频刷新。"
                 android:textColor="@color/subtle_text"
                 android:textSize="13sp"/>
 
@@ -151,12 +174,49 @@
                 android:textSize="17sp"
                 android:textStyle="bold"/>
 
+        <RadioGroup
+                android:id="@+id/groupAdNextThreshold"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_marginTop="10dp"
+                android:checkedButton="@id/radioAdNextThreshold100"
+                android:orientation="horizontal">
+
+            <RadioButton
+                    android:id="@+id/radioAdNextThreshold100"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="100"
+                    android:textColor="@color/headline"
+                    android:textSize="14sp"/>
+
+            <RadioButton
+                    android:id="@+id/radioAdNextThreshold200"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="200"
+                    android:textColor="@color/headline"
+                    android:textSize="14sp"/>
+
+            <RadioButton
+                    android:id="@+id/radioAdNextThreshold300"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="300"
+                    android:textColor="@color/headline"
+                    android:textSize="14sp"/>
+        </RadioGroup>
+
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:layout_marginTop="8dp"
-                android:text="单独开启页面识别和规则执行，不绑定固定任务。"
+                android:text="开启页面识别和规则执行，金币阈值用于广告下一步判断。"
                 android:textColor="@color/subtle_text"
                 android:textSize="13sp"/>
 

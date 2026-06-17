@@ -34,6 +34,9 @@ class OcrDynamicValueGate {
                 else -> Decision(shouldExecute = false)
             }
         }
+        if (valuePolicy is OcrValuePolicy.RuntimeNumericThreshold) {
+            return Decision(shouldExecute = true)
+        }
 
         // If policy is configured but no time placeholder was matched,
         // fall back to ordinary rule execution instead of blocking the action.

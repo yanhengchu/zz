@@ -143,6 +143,62 @@ ad_next,,,,,,,,0.48:0.55,0.48:0.61
     }
 
     @Test
+    fun resolveRuntimeValuePolicies_updatesOnlyRulesWithRuntimeThreshold() {
+        val rules = listOf(
+            createRule(
+                id = "live_ad_next",
+                valuePolicy = OcrValuePolicy.RuntimeNumericThreshold(
+                    NumericCompareOperator.GT,
+                    "AD_NEXT_THRESHOLD"
+                )
+            ),
+            createRule(
+                id = "aweme_ad_next",
+                valuePolicy = OcrValuePolicy.NumericThreshold(NumericCompareOperator.GT, 100)
+            ),
+            createRule(
+                id = "live_tree_list_ad",
+                valuePolicy = OcrValuePolicy.NumericThreshold(NumericCompareOperator.GT, 0)
+            )
+        )
+
+        val updatedRules = OcrRuleRepository.resolveRuntimeValuePolicies(rules, adNextThreshold = 300)
+
+        assertEquals(
+            OcrValuePolicy.NumericThreshold(NumericCompareOperator.GT, 300),
+            updatedRules[0].valuePolicy
+        )
+        assertEquals(
+            OcrValuePolicy.NumericThreshold(NumericCompareOperator.GT, 100),
+            updatedRules[1].valuePolicy
+        )
+        assertEquals(
+            OcrValuePolicy.NumericThreshold(NumericCompareOperator.GT, 0),
+            updatedRules[2].valuePolicy
+        )
+    }
+
+    @Test
+    fun resolveRuntimeValuePolicies_fallsBackToDefaultWhenThresholdIsUnsupported() {
+        val rules = listOf(
+            createRule(
+                id = "live_ad_next",
+                valuePolicy = OcrValuePolicy.RuntimeNumericThreshold(
+                    NumericCompareOperator.GT,
+                    "AD_NEXT_THRESHOLD"
+                )
+            )
+        )
+
+        val updatedRule = OcrRuleRepository.resolveRuntimeValuePolicies(rules, adNextThreshold = 500).single()
+
+        assertEquals(
+            OcrValuePolicy.NumericThreshold(NumericCompareOperator.GT, 100),
+            updatedRule.valuePolicy
+        )
+    }
+
+    @Test
     fun mergeRulePatches_overridesClickSequenceTargets() {
         val baseRule = OcrActionRule(
             id = "seq_buttons",
@@ -240,12 +296,14 @@ seq_buttons,,,,,,,,0.08:0.33|0.22:0.33,
 
     private fun createRule(
         id: String,
-        keywords: List<String> = listOf("广告", "领取成功")
+        keywords: List<String> = listOf("广告", "领取成功"),
+        valuePolicy: OcrValuePolicy? = null
     ): OcrActionRule {
         return OcrActionRule(
             id = id,
             keywords = keywords,
-            action = OcrRuleAction.Wait
+            action = OcrRuleAction.Wait,
+            valuePolicy = valuePolicy
         )
     }
 }
